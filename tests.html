@@ -28,6 +28,39 @@
 			equals(element.height(), 63);
 		});
 
+		test('down() moves current tile by one', function() {
+			var element = $('<div />').tetris({
+				    rows: 10,
+				    cols: 10,
+				    tileSize: 21
+			    }),
+                tetris = element.data('tetris');
+
+            tetris.currentTile = [5,6,7,8];
+
+            tetris.down();
+
+            same(tetris.currentTile, [15,16,17,18]);
+		});
+
+        test('down() triggers repaint', function() {
+			var element = $('<div />').tetris({
+				    rows: 10,
+				    cols: 10,
+				    tileSize: 21
+			    }),
+                tetris = element.data('tetris'),
+                triggered = false;
+
+            element.bind("repaint", function() {
+                triggered = true;
+            });
+
+            tetris.down();
+
+            ok(triggered);
+        });
+
 	</script>
 </body>
 </html>

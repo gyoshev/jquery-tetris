@@ -30,15 +30,6 @@
 
         this.generateTile();
 
-        $.each(this.currentTile, function() {
-            $('<div class="tile" />')
-                .css({
-                    left: (this % options.cols) * options.tileSize,
-                    top: Math.floor(this / options.cols) * options.tileSize
-                })
-                .appendTo(element);
-        });
-
         $(document).bind('keydown', $.proxy(this.keyDown, this));
 	};
 
@@ -67,6 +58,11 @@
         rotate: function() {
         },
         down: function() {
+            var cols = this.cols;
+
+            this.currentTile = $.map(this.currentTile, function(x) { return x + cols });
+
+            this.$element.trigger('repaint');
         },
         generateTile: function() {
             var cols = this.cols,
@@ -85,6 +81,16 @@
             }
 
             this.currentTile = newTile;
+        },
+        repaint: function() {
+            $.each(this.currentTile, function() {
+                $('<div class="tile" />')
+                    .css({
+                        left: (this % options.cols) * options.tileSize,
+                        top: Math.floor(this / options.cols) * options.tileSize
+                    })
+                    .appendTo(element);
+            });
         }
 	};
 
