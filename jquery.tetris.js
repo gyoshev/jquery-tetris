@@ -28,6 +28,17 @@
 			    height: this.rows * this.tileSize
 		    });
 
+        this.generateTile();
+
+        $.each(this.currentTile, function() {
+            $('<div class="tile" />')
+                .css({
+                    left: (this % options.cols) * options.tileSize,
+                    top: Math.floor(this / options.cols) * options.tileSize
+                })
+                .appendTo(element);
+        });
+
         $(document).bind('keydown', $.proxy(this.keyDown, this));
 	};
 
@@ -56,6 +67,24 @@
         rotate: function() {
         },
         down: function() {
+        },
+        generateTile: function() {
+            var cols = this.cols,
+                newTile = [Math.floor(cols/2),0,0,0],
+                anchor, side,
+                sides = [-cols,+1,+cols,-1];
+
+            for (var i = 1; i < newTile.length; i++) {
+                anchor = newTile[Math.floor(Math.random() * i)];
+
+                do {
+                    side = Math.floor(Math.random() * 4);
+                } while ($.inArray(anchor + sides[side], newTile) != -1);
+
+                newTile[i] = anchor + sides[side];
+            }
+
+            this.currentTile = newTile;
         }
 	};
 
