@@ -27,6 +27,8 @@
 			    width: this.cols * this.tileSize,
 			    height: this.rows * this.tileSize
 		    });
+
+        $(document).bind('keydown', $.proxy(this.keyDown, this));
 	};
 
     var keys = {
@@ -37,6 +39,24 @@
     };
 
 	impl.prototype = {
+        keyDown: function(e) {
+            var code = e.charCode || e.keyCode;
+
+            if (code == keys.left)
+                this.move(-1);
+            else if (code == keys.up)
+                this.rotate();
+            else if (code == keys.right)
+                this.move(1);
+            else if (code == keys.down)
+                this.down();
+        },
+        move: function(modifier) {
+        },
+        rotate: function() {
+        },
+        down: function() {
+        }
 	};
 
 	tetris.defaults = {
