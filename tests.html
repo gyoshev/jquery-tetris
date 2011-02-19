@@ -17,6 +17,17 @@
     <script type="text/javascript" src="jquery.tetris.js"></script>
 	<script type="text/javascript">
 
+		test('constructor sets stage size depending on tile size and rows/cols', function() {
+			var element = $('<div />').tetris({
+				    rows: 3,
+				    cols: 5,
+				    tileSize: 21
+			    });
+
+			equals(element.width(), 105);
+			equals(element.height(), 63);
+		});
+
 	</script>
 </body>
 </html>

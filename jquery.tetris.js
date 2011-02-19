@@ -21,6 +21,12 @@
 			element: element,
 			$element: $element
 		}, options);
+
+		$element
+            .css({
+			    width: this.cols * this.tileSize,
+			    height: this.rows * this.tileSize
+		    });
 	};
 
     var keys = {
