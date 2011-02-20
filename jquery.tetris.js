@@ -120,7 +120,7 @@
                 maxStageIndex = cols * this.rows,
                 shape = this.currentTile.shape,
                 newLocation = $.map(shape, function(x) { return x + cols; }),
-                isNewLocationOutOfLevel = $.grep(newLocation, function(x) { return x > maxStageIndex; }).length > 0;
+                isNewLocationOutOfLevel = $.grep(newLocation, function(x) { return x >= maxStageIndex; }).length > 0;
 
             if (!isNewLocationOutOfLevel && isFreePosition(newLocation, this.frozen)) {
                 this.currentTile.shape = newLocation;
