@@ -133,6 +133,8 @@
             same(tetris.currentTile, [0,1,2,3]);
         });
 
+        module('Dropping');
+
         test('tileDrop generates new tile', function() {
 			var element = $('<div />').tetris({
 				    rows: 10,
@@ -148,6 +150,22 @@
             ok(generated);
         });
 
+        test('tileDrop freezes current tile', function() {
+			var element = $('<div />').tetris({
+				    rows: 10,
+				    cols: 10
+			    }),
+                tetris = element.data('tetris'),
+                frozen = false;
+                
+            tetris.currentTile = [96,86,85,87];
+            tetris.freeze = function() { frozen = true; }
+
+            element.trigger('tileDrop');
+
+            ok(frozen);
+        });
+
         module('Rendering');
 
         test('repaint() renders parts for current tile', function() {
@@ -159,7 +177,31 @@
 
             tetris.repaint();
 
-            equals(element.find('.currentTile').length, tetris.currentTile.length);
+            equals(element.find('.current').length, tetris.currentTile.length);
+        });
+
+        test('freeze() marks tiles as frozen', function() {
+			var element = $('<div />').tetris({
+				    rows: 10,
+				    cols: 10
+			    }),
+                tetris = element.data('tetris');
+
+            tetris.freeze([95]);
+
+            equals(tetris.frozen[95], true);
+        });
+
+        test('freeze() renders frozen tiles', function() {
+			var element = $('<div />').tetris({
+				    rows: 10,
+				    cols: 10
+			    }),
+                tetris = element.data('tetris');
+
+            tetris.freeze([95]);
+
+            equals(element.find('.frozen.tile').length, 1);
         });
 
 	</script>

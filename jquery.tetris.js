@@ -2,6 +2,7 @@
 // by Alexander Gyoshev (http://blog.gyoshev.net/)
 // licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License. (http://creativecommons.org/licenses/by-sa/3.0/)
 (function($) {
+    // jQuery plug-in
 	var tetris = $.fn.tetris = function(options) {
 		options = $.extend($.fn.tetris.defaults, options);
 
@@ -14,12 +15,20 @@
 		});
 	};
 
+	tetris.defaults = {
+		rows: 18,
+		cols: 12,
+		tileSize: 16
+	};
+
+    // Tetris implementation
 	var impl = tetris.implementation = function(element, options) {
 		var $element = $(element), self = this;
 
 		$.extend(this, {
 			element: element,
-			$element: $element
+			$element: $element,
+            frozen: {}
 		}, options);
 
         this.generateTile();
@@ -32,6 +41,10 @@
                     $element.trigger('repaint');
                 },
                 tileDrop: function() {
+                    var currentTile = self.currentTile;
+
+                    self.freeze(self.currentTile);
+
                     self.generateTile();
                 }
             })
@@ -125,20 +138,39 @@
             this.currentTile = self.cache[Math.floor(Math.random() * self.cache.length)];
             this.currentTile = $.map(this.currentTile, function(x) { return x + 3*cols });
         },
+        freeze: function(tile) {
+            var frozenTilesHtml = [],
+                tileSize = this.tileSize,
+                cols = this.cols;
+
+            for (var i = 0; i < tile.length; i++) {
+                this.frozen[tile[i]] = true;
+                frozenTilesHtml.push('<div class="tile frozen" />');
+            }
+
+            $(frozenTilesHtml.join(''))
+                .each(function(i) {
+                    $(this).css({
+                        left: (tile[i] % cols) * tileSize,
+                        top: Math.floor(tile[i] / cols) * tileSize
+                    });
+                })
+                .appendTo(this.element);
+        },
         repaint: function() {
             var cols = this.cols,
                 tileSize = this.tileSize,
-                currentTile = this.$element.find('.currentTile');
+                currentTile = this.$element.find('.current');
 
             if (currentTile.length == 0) {
                 // render new tile
                 var currentTileHtml = [];
 
                 for (var h = 0; h < this.currentTile.length; h++) {
-                    currentTileHtml.push('<div class="tile currentTile" />');
+                    currentTileHtml.push('<div class="tile current" />');
                 }
 
-                currentTile = this.$element.append(currentTileHtml.join('')).find('.currentTile');
+                currentTile = this.$element.append(currentTileHtml.join('')).find('.current');
             }
 
             // position current tile
@@ -149,11 +181,5 @@
                 });
             }
         }
-	};
-
-	tetris.defaults = {
-		rows: 18,
-		cols: 12,
-		tileSize: 16
 	};
 })(jQuery);
