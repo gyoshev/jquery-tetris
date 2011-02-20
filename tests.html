@@ -61,6 +61,43 @@
             ok(triggered);
         });
 
+		test('move() moves current tile by one', function() {
+			var element = $('<div />').tetris({
+				    rows: 10,
+				    cols: 10,
+				    tileSize: 21
+			    }),
+                tetris = element.data('tetris');
+
+            tetris.currentTile = [5,6,7,8];
+
+            tetris.move(1);
+
+            same(tetris.currentTile, [6,7,8,9]);
+
+            tetris.move(-1);
+
+            same(tetris.currentTile, [5,6,7,8]);
+		});
+
+        test('move() triggers repaint', function() {
+			var element = $('<div />').tetris({
+				    rows: 10,
+				    cols: 10,
+				    tileSize: 21
+			    }),
+                tetris = element.data('tetris'),
+                triggered = false;
+
+            element.bind("repaint", function() {
+                triggered = true;
+            });
+
+            tetris.move();
+
+            ok(triggered);
+        });
+
 	</script>
 </body>
 </html>

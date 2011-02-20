@@ -15,20 +15,28 @@
 	};
 
 	var impl = tetris.implementation = function(element, options) {
-		var $element = $(element);
+		var $element = $(element), self = this;
 
 		$.extend(this, {
 			element: element,
 			$element: $element
 		}, options);
 
+        this.generateTile();
+
 		$element
+            .bind('repaint', $.proxy(this.repaint, this))
             .css({
 			    width: this.cols * this.tileSize,
 			    height: this.rows * this.tileSize
-		    });
+		    })
+            .trigger('repaint');
 
-        this.generateTile();
+        /// TODO: improve timer
+        this.timer = setInterval(function() {
+            self.down();
+            $element.trigger('repaint');
+        }, 600);
 
         $(document).bind('keydown', $.proxy(this.keyDown, this));
 	};
@@ -54,6 +62,9 @@
                 this.down();
         },
         move: function(modifier) {
+            this.currentTile = $.map(this.currentTile, function(x) { return x + modifier });
+            
+            this.$element.trigger('repaint');
         },
         rotate: function() {
         },
@@ -65,32 +76,42 @@
             this.$element.trigger('repaint');
         },
         generateTile: function() {
-            var cols = this.cols,
-                newTile = [Math.floor(cols/2),0,0,0],
-                anchor, side,
-                sides = [-cols,+1,+cols,-1];
+            var self = arguments.callee, cols, center;
 
-            for (var i = 1; i < newTile.length; i++) {
-                anchor = newTile[Math.floor(Math.random() * i)];
+            if (!self.cache) {
+                // build shape cache                
+                cols = this.cols;
+                direction = [ -cols, +1, +cols, -1];
+                center = Math.floor(cols/2);
 
-                do {
-                    side = Math.floor(Math.random() * 4);
-                } while ($.inArray(anchor + sides[side], newTile) != -1);
-
-                newTile[i] = anchor + sides[side];
+                self.cache = [
+                    [ center, center+1, center+direction[0], center+direction[0]+1 ],              // O
+                    [ center, center+direction[0], center+2*direction[0], center+3*direction[0] ], // I
+                    [ center, center-1, center+direction[0], center+2*direction[0] ],              // J
+                    [ center, center+1, center+direction[0], center+2*direction[0] ],              // L
+                    [ center, center+1, center+direction[0], center+direction[0]-1 ],              // Z
+                    [ center, center-1, center+direction[0], center+direction[0]+1 ],              // S
+                    [ center, center+direction[0], center+direction[0]-1, center+direction[0]+1 ]  // T
+                ];
             }
 
-            this.currentTile = newTile;
+            this.currentTile = self.cache[Math.floor(Math.random() * self.cache.length)];
+            this.currentTile = $.map(this.currentTile, function(x) { return x + 3*cols });
         },
         repaint: function() {
-            $.each(this.currentTile, function() {
-                $('<div class="tile" />')
+            var cols = this.cols,
+                tileSize = this.tileSize;
+
+            $('.currentTile').remove();
+
+            for (var i = 0; i < this.currentTile.length; i++) {
+                $('<div class="tile currentTile" />')
                     .css({
-                        left: (this % options.cols) * options.tileSize,
-                        top: Math.floor(this / options.cols) * options.tileSize
+                        left: (this.currentTile[i] % cols) * tileSize,
+                        top: Math.floor(this.currentTile[i] / cols) * tileSize
                     })
-                    .appendTo(element);
-            });
+                    .appendTo(this.element);
+            }
         }
 	};
 
