@@ -25,7 +25,13 @@
         this.generateTile();
 
 		$element
-            .bind('repaint', $.proxy(this.repaint, this))
+            .bind({
+                repaint: $.proxy(this.repaint, this),
+                tick: function() {
+                    self.down();
+                    $element.trigger('repaint');
+                }
+            })
             .css({
 			    width: this.cols * this.tileSize,
 			    height: this.rows * this.tileSize
@@ -34,8 +40,7 @@
 
         /// TODO: improve timer
         this.timer = setInterval(function() {
-            self.down();
-            $element.trigger('repaint');
+            $element.trigger('tick');
         }, 600);
 
         $(document).bind('keydown', $.proxy(this.keyDown, this));
@@ -65,8 +70,6 @@
             var cols = this.cols,
                 newLocation = $.map(this.currentTile, function(x) { return x + modifier; }),
                 isNewLocationOutOfLevel = false;
-
-            console.log(newLocation, this.currentTile);
 
             for (var i = 0; i < newLocation.length; i++) {
                 if (newLocation[i] < 0 || (newLocation[i] % cols) != ((this.currentTile[i] % cols) + modifier)) {
