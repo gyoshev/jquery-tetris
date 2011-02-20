@@ -62,19 +62,32 @@
                 this.down();
         },
         move: function(modifier) {
-            this.currentTile = $.map(this.currentTile, function(x) { return x + modifier });
-            
-            this.$element.trigger('repaint');
+            var cols = this.cols,
+                newLocation = $.map(this.currentTile, function(x) { return x + modifier; }),
+                isNewLocationOutOfLevel = false;
+
+            console.log(newLocation, this.currentTile);
+
+            for (var i = 0; i < newLocation.length; i++) {
+                if (newLocation[i] < 0 || (newLocation[i] % cols) != ((this.currentTile[i] % cols) + modifier)) {
+                    isNewLocationOutOfLevel = true;
+                }
+            }
+                
+            if (!isNewLocationOutOfLevel) {
+                this.currentTile = newLocation;
+                this.$element.trigger('repaint');
+            }
         },
         rotate: function() {
         },
         down: function() {
             var cols = this.cols,
                 maxStageIndex = cols * this.rows,
-                newLocation = $.map(this.currentTile, function(x) { return x + cols }),
-                isNewLocationOutOfLevel = $.grep(newLocation, function(x) { return x > maxStageIndex; }).length == 0;
+                newLocation = $.map(this.currentTile, function(x) { return x + cols; }),
+                isNewLocationOutOfLevel = $.grep(newLocation, function(x) { return x > maxStageIndex; }).length > 0;
 
-            if (isNewLocationOutOfLevel) {
+            if (!isNewLocationOutOfLevel) {
                 this.currentTile = newLocation;
                 this.$element.trigger('repaint');
             } else {
