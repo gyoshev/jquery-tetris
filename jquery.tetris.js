@@ -110,6 +110,7 @@
                 direction = [ -cols, +1, +cols, -1];
                 center = Math.floor(cols/2);
 
+                // shapes
                 self.cache = [
                     [ center, center+1, center+direction[0], center+direction[0]+1 ],              // O
                     [ center, center+direction[0], center+2*direction[0], center+3*direction[0] ], // I
@@ -126,17 +127,26 @@
         },
         repaint: function() {
             var cols = this.cols,
-                tileSize = this.tileSize;
+                tileSize = this.tileSize,
+                currentTile = this.$element.find('.currentTile');
 
-            $('.currentTile').remove();
+            if (currentTile.length == 0) {
+                // render new tile
+                var currentTileHtml = [];
 
+                for (var h = 0; h < this.currentTile.length; h++) {
+                    currentTileHtml.push('<div class="tile currentTile" />');
+                }
+
+                currentTile = this.$element.append(currentTileHtml.join('')).find('.currentTile');
+            }
+
+            // position current tile
             for (var i = 0; i < this.currentTile.length; i++) {
-                $('<div class="tile currentTile" />')
-                    .css({
-                        left: (this.currentTile[i] % cols) * tileSize,
-                        top: Math.floor(this.currentTile[i] / cols) * tileSize
-                    })
-                    .appendTo(this.element);
+                currentTile.eq(i).css({
+                    left: (this.currentTile[i] % cols) * tileSize,
+                    top: Math.floor(this.currentTile[i] / cols) * tileSize
+                });
             }
         }
 	};
