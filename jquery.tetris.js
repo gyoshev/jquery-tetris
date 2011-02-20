@@ -30,6 +30,9 @@
                 tick: function() {
                     self.down();
                     $element.trigger('repaint');
+                },
+                tileDrop: function() {
+                    self.generateTile();
                 }
             })
             .css({
@@ -94,15 +97,16 @@
                 this.currentTile = newLocation;
                 this.$element.trigger('repaint');
             } else {
-                this.$element.trigger('tileCollision');
+                this.$element.trigger('tileDrop');
             }
         },
         generateTile: function() {
-            var self = arguments.callee, cols, center;
+            var self = arguments.callee,
+                cols = this.cols,
+                center;
 
             if (!self.cache) {
-                // build shape cache                
-                cols = this.cols;
+                // build shape cache
                 direction = [ -cols, +1, +cols, -1];
                 center = Math.floor(cols/2);
 

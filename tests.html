@@ -65,16 +65,16 @@
 				    cols: 10
 			    }),
                 tetris = element.data('tetris'),
-                triggeredTileCollision = false;
+                triggeredTileDrop = false;
                 
             tetris.currentTile = [96,97,98,99];
 
-            element.bind('tileCollision', function() { triggeredTileCollision = true; });
+            element.bind('tileDrop', function() { triggeredTileDrop = true; });
 
             tetris.down();
             
             same(tetris.currentTile, [96,97,98,99]);
-            ok(triggeredTileCollision);
+            ok(triggeredTileDrop);
         });
 
 		test('move() moves current tile by one', function() {
@@ -129,6 +129,21 @@
             tetris.currentTile = [0,1,2,3];
             tetris.move(-1);
             same(tetris.currentTile, [0,1,2,3]);
+        });
+
+        test('tileDrop generates new tile', function() {
+			var element = $('<div />').tetris({
+				    rows: 10,
+				    cols: 10
+			    }),
+                tetris = element.data('tetris'),
+                generated = false;
+                
+            tetris.generateTile = function() { generated = true; };
+
+            element.trigger('tileDrop');
+
+            ok(generated);
         });
 
 	</script>
