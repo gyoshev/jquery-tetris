@@ -38,11 +38,11 @@
 			    }),
                 tetris = element.data('tetris');
 
-            tetris.currentTile = [5,6,7,8];
+            tetris.currentTile = { shape: [5,6,7,8] };
 
             tetris.down();
 
-            same(tetris.currentTile, [15,16,17,18]);
+            same(tetris.currentTile, { shape: [15,16,17,18] });
 		});
 
         test('down() triggers repaint', function() {
@@ -67,7 +67,7 @@
                 tetris = element.data('tetris'),
                 triggeredTileDrop = false;
                 
-            tetris.currentTile = [96,97,98,99];
+            tetris.currentTile = { shape: [96,97,98,99] };
 
             element
                 .unbind('tileDrop')
@@ -75,7 +75,7 @@
 
             tetris.down();
             
-            same(tetris.currentTile, [96,97,98,99]);
+            same(tetris.currentTile, { shape: [96,97,98,99] });
             ok(triggeredTileDrop);
         });
 
@@ -88,7 +88,7 @@
                 tetris = element.data('tetris'),
                 triggeredTileDrop = false;
                 
-            tetris.currentTile = [85,86,87,88];
+            tetris.currentTile = { shape: [85,86,87,88] };
 
             element
                 .unbind('tileDrop')
@@ -96,7 +96,7 @@
 
             tetris.down();
             
-            same(tetris.currentTile, [85,86,87,88]);
+            same(tetris.currentTile, { shape: [85,86,87,88] });
             ok(triggeredTileDrop);
         });
 
@@ -109,13 +109,13 @@
                 tetris = element.data('tetris');
             
 
-            tetris.currentTile = [15,16,17,18];
+            tetris.currentTile = { shape: [15,16,17,18] };
 
             tetris.move(1);
-            same(tetris.currentTile, [16,17,18,19]);
+            same(tetris.currentTile, { shape: [16,17,18,19] });
 
             tetris.move(-1);
-            same(tetris.currentTile, [15,16,17,18]);
+            same(tetris.currentTile, { shape: [15,16,17,18] });
 		});
 
         test('move() triggers repaint', function() {
@@ -131,7 +131,7 @@
                 triggered = true;
             });
 
-            tetris.currentTile = [15,16,17,18];
+            tetris.currentTile = { shape: [15,16,17,18] };
 
             tetris.move(1);
 
@@ -145,21 +145,21 @@
 			    }),
                 tetris = element.data('tetris');
                 
-            tetris.currentTile = [6,7,8,9];
+            tetris.currentTile = { shape: [6,7,8,9] };
             tetris.move(1);
-            same(tetris.currentTile, [6,7,8,9]);
+            same(tetris.currentTile, { shape: [6,7,8,9] });
                 
-            tetris.currentTile = [0,1,2,3];
+            tetris.currentTile = { shape: [0,1,2,3] };
             tetris.move(-1);
-            same(tetris.currentTile, [0,1,2,3]);
+            same(tetris.currentTile, { shape: [0,1,2,3] });
                 
-            tetris.currentTile = [5,-5,-6,-7];
+            tetris.currentTile = { shape: [5,-5,-6,-7] };
             tetris.move(-1);
-            same(tetris.currentTile, [4,-6,-7,-8]);
+            same(tetris.currentTile, { shape: [4,-6,-7,-8] });
                 
-            tetris.currentTile = [0,10,20,30];
+            tetris.currentTile = { shape: [0,10,20,30] };
             tetris.move(-1);
-            same(tetris.currentTile, [0,10,20,30]);
+            same(tetris.currentTile, { shape: [0,10,20,30] });
         });
 
         test('move() honors frozen tiles', function() {
@@ -171,13 +171,18 @@
                 tetris = element.data('tetris'),
                 triggeredTileDrop = false;
                 
-            tetris.currentTile = [85,86,87,88];
+            tetris.currentTile = { shape: [85,86,87,88] };
 
             tetris.move(-1);
-            same(tetris.currentTile, [85,86,87,88]);
+            same(tetris.currentTile, { shape: [85,86,87,88] });
 
             tetris.move(1);
-            same(tetris.currentTile, [85,86,87,88]);
+            same(tetris.currentTile, { shape: [85,86,87,88] });
+        });
+
+        module('Rotation');
+
+        test('rotate() rotates tile', function() {
         });
 
         module('Dropping');
@@ -205,12 +210,11 @@
                 tetris = element.data('tetris'),
                 frozen = false;
                 
-            tetris.currentTile = [96,86,85,87];
-            tetris.freeze = function() { frozen = true; }
+            tetris.currentTile = { shape: [96,86,85,87] };
 
             element.trigger('tileDrop');
-
-            ok(frozen);
+            
+            equals(element.find('.frozen.tile').length, 4);
         });
 
         module('Rendering');
@@ -224,7 +228,7 @@
 
             tetris.repaint();
 
-            equals(element.find('.current').length, tetris.currentTile.length);
+            equals(element.find('.current').length, tetris.currentTile.shape.length);
         });
 
         test('freeze() marks tiles as frozen', function() {
@@ -234,7 +238,7 @@
 			    }),
                 tetris = element.data('tetris');
 
-            tetris.freeze([95]);
+            tetris.freeze({ type: 'X', shape: [95] });
 
             equals(tetris.frozen[95], true);
         });
@@ -246,7 +250,7 @@
 			    }),
                 tetris = element.data('tetris');
 
-            tetris.freeze([95]);
+            tetris.freeze({ type: 'X', shape: [95] });
 
             equals(element.find('.frozen.tile').length, 1);
         });

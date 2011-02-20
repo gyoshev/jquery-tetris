@@ -16,8 +16,8 @@
 	};
 
 	tetris.defaults = {
-		rows: 18,
-		cols: 12,
+		rows: 20,
+		cols: 10,
 		tileSize: 16
 	};
 
@@ -44,6 +44,8 @@
                     var currentTile = self.currentTile;
 
                     self.freeze(self.currentTile);
+
+                    $element.find('.current').remove();
 
                     self.generateTile();
                 }
@@ -94,19 +96,20 @@
         },
         move: function(modifier) {
             var cols = this.cols,
-                newLocation = $.map(this.currentTile, function(x) { return x + modifier; }),
+                shape = this.currentTile.shape,
+                newLocation = $.map(shape, function(x) { return x + modifier; }),
                 isLocationOutOfLevel = false;
 
             for (var i = 0; i < newLocation.length; i++) {
-                if (this.currentTile[i] % cols == 0       && modifier < 0
-                 || this.currentTile[i] % cols == cols -1 && modifier > 0) {
+                if (shape[i] % cols == 0       && modifier < 0
+                 || shape[i] % cols == cols -1 && modifier > 0) {
                     isLocationOutOfLevel = true;
                     break;
                 }
             }
                 
             if (!isLocationOutOfLevel && isFreePosition(newLocation, this.frozen)) {
-                this.currentTile = newLocation;
+                this.currentTile.shape = newLocation;
                 this.$element.trigger('repaint');
             }
         },
@@ -115,55 +118,55 @@
         down: function() {
             var cols = this.cols,
                 maxStageIndex = cols * this.rows,
-                newLocation = $.map(this.currentTile, function(x) { return x + cols; }),
+                shape = this.currentTile.shape,
+                newLocation = $.map(shape, function(x) { return x + cols; }),
                 isNewLocationOutOfLevel = $.grep(newLocation, function(x) { return x > maxStageIndex; }).length > 0;
 
             if (!isNewLocationOutOfLevel && isFreePosition(newLocation, this.frozen)) {
-                this.currentTile = newLocation;
+                this.currentTile.shape = newLocation;
                 this.$element.trigger('repaint');
             } else {
                 this.$element.trigger('tileDrop');
             }
         },
         generateTile: function() {
-            var self = arguments.callee,
-                cols = this.cols,
-                center;
+            var self = arguments.callee;
 
             if (!self.cache) {
                 // build shape cache
-                direction = [ -cols, +1, +cols, -1];
-                center = Math.floor(cols/2);
+                var cols = this.cols,
+                    center = Math.floor(cols/2),
+                    direction = [-cols, +1, +cols, -1];
 
-                // shapes
                 self.cache = [
-                    [ center, center+1, center+direction[0], center+direction[0]+1 ],              // O
-                    [ center, center+direction[0], center+2*direction[0], center+3*direction[0] ], // I
-                    [ center, center-1, center+direction[0], center+2*direction[0] ],              // J
-                    [ center, center+1, center+direction[0], center+2*direction[0] ],              // L
-                    [ center, center+1, center+direction[0], center+direction[0]-1 ],              // Z
-                    [ center, center-1, center+direction[0], center+direction[0]+1 ],              // S
-                    [ center, center+direction[0], center+direction[0]-1, center+direction[0]+1 ]  // T
+                    { type: 'O', shape: [ center, center+1, center+direction[0], center+direction[0]+1 ] },
+                    { type: 'J', shape: [ center, center-1, center+direction[0], center+2*direction[0] ] },
+                    { type: 'L', shape: [ center, center+1, center+direction[0], center+2*direction[0] ] },
+                    { type: 'I', shape: [ center, center+direction[0], center+2*direction[0], center+3*direction[0] ] },
+                    { type: 'S', shape: [ center, center-1, center+direction[0], center+direction[0]+1 ] },
+                    { type: 'Z', shape: [ center, center+1, center+direction[0], center+direction[0]-1 ] },
+                    { type: 'T', shape: [ center, center+direction[0], center+direction[0]-1, center+direction[0]+1 ] }
                 ];
             }
 
-            this.currentTile = self.cache[Math.floor(Math.random() * self.cache.length)];
+            this.currentTile = $.extend({}, self.cache[Math.floor(Math.random() * self.cache.length)]);
         },
         freeze: function(tile) {
             var frozenTilesHtml = [],
+                shape = tile.shape,
                 tileSize = this.tileSize,
                 cols = this.cols;
 
-            for (var i = 0; i < tile.length; i++) {
-                this.frozen[tile[i]] = true;
-                frozenTilesHtml.push('<div class="tile frozen" />');
+            for (var i = 0; i < shape.length; i++) {
+                this.frozen[shape[i]] = true;
+                frozenTilesHtml.push('<div class="tile frozen type-' + tile.type + '" />');
             }
 
             $(frozenTilesHtml.join(''))
                 .each(function(i) {
                     $(this).css({
-                        left: (tile[i] % cols) * tileSize,
-                        top: Math.floor(tile[i] / cols) * tileSize
+                        left: (shape[i] % cols) * tileSize,
+                        top: Math.floor(shape[i] / cols) * tileSize
                     });
                 })
                 .appendTo(this.element);
@@ -171,24 +174,25 @@
         repaint: function() {
             var cols = this.cols,
                 tileSize = this.tileSize,
+                shape = this.currentTile.shape,
                 currentTile = this.$element.find('.current');
 
             if (currentTile.length == 0) {
                 // render new tile
                 var currentTileHtml = [];
 
-                for (var h = 0; h < this.currentTile.length; h++) {
-                    currentTileHtml.push('<div class="tile current" />');
+                for (var h = 0; h < shape.length; h++) {
+                    currentTileHtml.push('<div class="tile current type-' + this.currentTile.type + '" />');
                 }
 
                 currentTile = this.$element.append(currentTileHtml.join('')).find('.current');
             }
 
-            // position current tile
-            for (var i = 0; i < this.currentTile.length; i++) {
+            // position shape
+            for (var i = 0; i < shape.length; i++) {
                 currentTile.eq(i).css({
-                    left: (this.currentTile[i] % cols) * tileSize,
-                    top: Math.floor(this.currentTile[i] / cols) * tileSize
+                    left: (shape[i] % cols) * tileSize,
+                    top: Math.floor(shape[i] / cols) * tileSize
                 });
             }
         }
