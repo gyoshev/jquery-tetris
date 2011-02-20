@@ -79,6 +79,27 @@
             ok(triggeredTileDrop);
         });
 
+        test('down() honors frozen tiles', function() {
+			var element = $('<div />').tetris({
+				    rows: 10,
+				    cols: 10,
+                    frozen: { '95': true }
+			    }),
+                tetris = element.data('tetris'),
+                triggeredTileDrop = false;
+                
+            tetris.currentTile = [85,86,87,88];
+
+            element
+                .unbind('tileDrop')
+                .bind('tileDrop', function() { triggeredTileDrop = true; });
+
+            tetris.down();
+            
+            same(tetris.currentTile, [85,86,87,88]);
+            ok(triggeredTileDrop);
+        });
+
 		test('move() moves current tile by one', function() {
 			var element = $('<div />').tetris({
 				    rows: 10,
@@ -131,6 +152,32 @@
             tetris.currentTile = [0,1,2,3];
             tetris.move(-1);
             same(tetris.currentTile, [0,1,2,3]);
+                
+            tetris.currentTile = [5,-5,-6,-7];
+            tetris.move(-1);
+            same(tetris.currentTile, [4,-6,-7,-8]);
+                
+            tetris.currentTile = [0,10,20,30];
+            tetris.move(-1);
+            same(tetris.currentTile, [0,10,20,30]);
+        });
+
+        test('move() honors frozen tiles', function() {
+			var element = $('<div />').tetris({
+				    rows: 10,
+				    cols: 10,
+                    frozen: { '84': true, '89': true }
+			    }),
+                tetris = element.data('tetris'),
+                triggeredTileDrop = false;
+                
+            tetris.currentTile = [85,86,87,88];
+
+            tetris.move(-1);
+            same(tetris.currentTile, [85,86,87,88]);
+
+            tetris.move(1);
+            same(tetris.currentTile, [85,86,87,88]);
         });
 
         module('Dropping');

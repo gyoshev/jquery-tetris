@@ -69,6 +69,16 @@
         down: 40
     };
 
+    function isFreePosition(position, frozenTiles) {
+        for (var i = 0; i < position.length; i++) {
+            if (frozenTiles[position[i]]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 	impl.prototype = {
         keyDown: function(e) {
             var code = e.charCode || e.keyCode;
@@ -85,15 +95,17 @@
         move: function(modifier) {
             var cols = this.cols,
                 newLocation = $.map(this.currentTile, function(x) { return x + modifier; }),
-                isNewLocationOutOfLevel = false;
+                isLocationOutOfLevel = false;
 
             for (var i = 0; i < newLocation.length; i++) {
-                if (newLocation[i] < 0 || (newLocation[i] % cols) != ((this.currentTile[i] % cols) + modifier)) {
-                    isNewLocationOutOfLevel = true;
+                if (this.currentTile[i] % cols == 0       && modifier < 0
+                 || this.currentTile[i] % cols == cols -1 && modifier > 0) {
+                    isLocationOutOfLevel = true;
+                    break;
                 }
             }
                 
-            if (!isNewLocationOutOfLevel) {
+            if (!isLocationOutOfLevel && isFreePosition(newLocation, this.frozen)) {
                 this.currentTile = newLocation;
                 this.$element.trigger('repaint');
             }
@@ -106,7 +118,7 @@
                 newLocation = $.map(this.currentTile, function(x) { return x + cols; }),
                 isNewLocationOutOfLevel = $.grep(newLocation, function(x) { return x > maxStageIndex; }).length > 0;
 
-            if (!isNewLocationOutOfLevel) {
+            if (!isNewLocationOutOfLevel && isFreePosition(newLocation, this.frozen)) {
                 this.currentTile = newLocation;
                 this.$element.trigger('repaint');
             } else {
@@ -136,7 +148,6 @@
             }
 
             this.currentTile = self.cache[Math.floor(Math.random() * self.cache.length)];
-            this.currentTile = $.map(this.currentTile, function(x) { return x + 3*cols });
         },
         freeze: function(tile) {
             var frozenTilesHtml = [],
