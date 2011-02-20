@@ -1,4 +1,4 @@
-// jQuery Tetris plug-in
+    // jQuery Tetris plug-in
 // by Alexander Gyoshev (http://blog.gyoshev.net/)
 // licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License. (http://creativecommons.org/licenses/by-sa/3.0/)
 (function($) {
@@ -69,11 +69,17 @@
         rotate: function() {
         },
         down: function() {
-            var cols = this.cols;
+            var cols = this.cols,
+                maxStageIndex = cols * this.rows,
+                newLocation = $.map(this.currentTile, function(x) { return x + cols }),
+                isNewLocationOutOfLevel = $.grep(newLocation, function(x) { return x > maxStageIndex; }).length == 0;
 
-            this.currentTile = $.map(this.currentTile, function(x) { return x + cols });
-
-            this.$element.trigger('repaint');
+            if (isNewLocationOutOfLevel) {
+                this.currentTile = newLocation;
+                this.$element.trigger('repaint');
+            } else {
+                this.$element.trigger('tileCollision');
+            }
         },
         generateTile: function() {
             var self = arguments.callee, cols, center;

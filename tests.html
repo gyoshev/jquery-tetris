@@ -28,6 +28,8 @@
 			equals(element.height(), 63);
 		});
 
+        module('Movement');
+
 		test('down() moves current tile by one', function() {
 			var element = $('<div />').tetris({
 				    rows: 10,
@@ -44,11 +46,7 @@
 		});
 
         test('down() triggers repaint', function() {
-			var element = $('<div />').tetris({
-				    rows: 10,
-				    cols: 10,
-				    tileSize: 21
-			    }),
+			var element = $('<div />').tetris(),
                 tetris = element.data('tetris'),
                 triggered = false;
 
@@ -59,6 +57,29 @@
             tetris.down();
 
             ok(triggered);
+        });
+
+        test('down() honors level end', function() {
+			var element = $('<div />').tetris({
+				    rows: 10,
+				    cols: 10
+			    }),
+                tetris = element.data('tetris'),
+                triggeredTileCollision = false,
+                triggeredRepaint = false;
+                
+            tetris.currentTile = [96,97,98,99];
+
+            element.bind({
+                tileCollision: function() { triggeredTileCollision = true; },
+                repaint: function() { triggeredRepaint = true; }
+            });
+
+            tetris.down();
+            
+            same(tetris.currentTile, [96,97,98,99]);
+            ok(triggeredTileCollision);
+            ok(!triggeredRepaint);
         });
 
 		test('move() moves current tile by one', function() {
