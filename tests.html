@@ -54,6 +54,7 @@
                 triggered = true;
             });
 
+            tetris.start();
             tetris.down();
 
             ok(triggered);
@@ -208,6 +209,8 @@
 			    }),
                 tetris = element.data('tetris'),
                 generated = false;
+
+            tetris.start();
                 
             tetris.generateTile = function() { generated = true; };
 
@@ -224,6 +227,8 @@
                 tetris = element.data('tetris'),
                 frozen = false;
                 
+            tetris.start();
+
             tetris.currentTile = { shape: [96,86,85,87] };
 
             element.trigger('tileDrop');
@@ -240,6 +245,7 @@
 			    }),
                 tetris = element.data('tetris');
 
+            tetris.start();
             tetris.repaint();
 
             equals(element.find('.current').length, tetris.currentTile.shape.length);
@@ -267,6 +273,30 @@
             tetris.freeze({ type: 'X', shape: [95] });
 
             equals(element.find('.frozen.tile').length, 1);
+        });
+
+        module('Game cycle');
+
+        test('Game ends when new piece clashes with frozen ones', function() {
+			var element = $('<div />')
+                    .bind('gameOver', function() {
+                        triggered = true;
+                    })
+                    .tetris({
+				        rows: 5,
+    				    cols: 5
+	    		    }),
+                tetris = element.data('tetris'),
+                triggered = false;
+
+            tetris.freeze({ type: 'X', shape: [3] });
+            tetris.generateTile = function() {
+                this.currentTile = { type: 'F', shape: [3] };
+            };
+
+            tetris.start();
+
+            ok(triggered);
         });
 
 	</script>

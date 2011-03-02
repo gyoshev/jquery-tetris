@@ -1,4 +1,4 @@
-    // jQuery Tetris plug-in
+// jQuery Tetris plug-in
 // by Alexander Gyoshev (http://blog.gyoshev.net/)
 // licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License. (http://creativecommons.org/licenses/by-sa/3.0/)
 (function($) {
@@ -23,7 +23,7 @@
 
     // Tetris implementation
 	var impl = tetris.implementation = function(element, options) {
-		var $element = $(element), self = this;
+		var $element = $(element);
 
 		$.extend(this, {
 			element: element,
@@ -31,37 +31,11 @@
             frozen: {}
 		}, options);
 
-        this.generateTile();
-
-		$element
-            .bind({
-                repaint: $.proxy(this.repaint, this),
-                tick: function() {
-                    self.down();
-                    $element.trigger('repaint');
-                },
-                tileDrop: function() {
-                    var currentTile = self.currentTile;
-
-                    self.freeze(self.currentTile);
-
-                    $element.find('.current').remove();
-
-                    self.generateTile();
-                }
-            })
+        $element
             .css({
-			    width: this.cols * this.tileSize,
-			    height: this.rows * this.tileSize
-		    })
-            .trigger('repaint');
-
-        /// TODO: improve timer
-        this.timer = setInterval(function() {
-            $element.trigger('tick');
-        }, 600);
-
-        $(document).bind('keydown', $.proxy(this.keyDown, this));
+	            width: this.cols * this.tileSize,
+	        	height: this.rows * this.tileSize
+	        });
 	};
 
     var keys = {
@@ -130,15 +104,15 @@
             }
         },
         generateTile: function() {
-            var self = arguments.callee;
+            var that = arguments.callee;
 
-            if (!self.cache) {
+            if (!that.cache) {
                 // build shape cache
                 var cols = this.cols,
                     center = Math.floor(cols/2),
                     direction = [-cols, +1, +cols, -1];
 
-                self.cache = [
+                that.cache = [
                     { type: 'O', shape: [ center, center+1, center+direction[0], center+direction[0]+1 ] },
                     { type: 'J', shape: [ center, center-1, center+direction[0], center+2*direction[0] ] },
                     { type: 'L', shape: [ center, center+1, center+direction[0], center+2*direction[0] ] },
@@ -149,7 +123,7 @@
                 ];
             }
 
-            this.currentTile = $.extend({}, self.cache[Math.floor(Math.random() * self.cache.length)]);
+            this.currentTile = $.extend({}, that.cache[Math.floor(Math.random() * that.cache.length)]);
         },
         freeze: function(tile) {
             var frozenTilesHtml = [],
@@ -195,6 +169,42 @@
                     top: Math.floor(shape[i] / cols) * tileSize
                 });
             }
+        },
+        start: function() {
+           this.generateTile();
+
+            var $element = this.$element,
+                that = this;
+
+            if (!isFreePosition(this.currentTile.shape, this.frozen)) {
+                $element.trigger('gameOver');
+            }
+
+	       $element
+               .bind({
+                   repaint: $.proxy(this.repaint, this),
+                   tick: function() {
+                       that.down();
+                       $element.trigger('repaint');
+                   },
+                   tileDrop: function() {
+                       var currentTile = that.currentTile;
+
+                       that.freeze(that.currentTile);
+
+                       $element.find('.current').remove();
+
+                       that.generateTile();
+                   }
+               })
+               .trigger('repaint');
+
+           /// TODO: improve timer
+           this.timer = setInterval(function() {
+               $element.trigger('tick');
+           }, 600);
+
+           $(document).bind('keydown', $.proxy(this.keyDown, this));
         }
 	};
 })(jQuery);
