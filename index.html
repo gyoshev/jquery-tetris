@@ -36,10 +36,23 @@
 	<body>
 		<div id="tetris"></div>
 
+        <button id="toggleState">Play / pause</button>
+
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.js"></script>
 		<script src="jquery.tetris.js"></script>
 		<script>
-			$('#tetris').tetris();
+            
+			var tetris = $('#tetris').tetris().data('tetris');
+            $('#toggleState').click(function() {
+                if (tetris.timer != null) {
+                    tetris.pause();
+                } else {
+                    tetris.start();
+                    tetris.$element.bind('gameOver', function() {
+                        alert('game over, loser!');
+                    });
+                }
+            });
 		</script>
 	</body>
 </html>

@@ -299,6 +299,47 @@
             ok(triggered);
         });
 
+        test('pause() stops timer', function() {
+			var element = $('<div />')
+                    .bind('tick', function() {
+                        triggered = true;
+                    })
+                    .tetris({
+				        rows: 5,
+    				    cols: 5
+	    		    }),
+                tetris = element.data('tetris'),
+                triggered = false;
+
+            tetris.start();
+            tetris.pause();
+
+            ok(!triggered);
+            equals(tetris.timer, null);
+        });
+
+        test('tileDrop triggers gameOver if start position is frozen', function() {
+			var element = $('<div />')
+                    .bind('gameOver', function() {
+                        triggered = true;
+                    })
+                    .tetris({
+				        rows: 5,
+    				    cols: 5
+	    		    }),
+                triggered = false,
+                tetris = element.data('tetris');
+
+            tetris.generateTile = function() {
+                this.currentTile = { type: 'X', shape: [3,4,9,10] };
+            };
+
+            tetris.currentTile = { type: 'X', shape: [3,8,13,18,23] };
+            debugger;
+            tetris.down();
+
+            ok(triggered);
+        });
 	</script>
 </body>
 </html>

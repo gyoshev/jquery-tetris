@@ -31,11 +31,19 @@
             frozen: {}
 		}, options);
 
+        this.generateTile();
+
         $element
             .css({
 	            width: this.cols * this.tileSize,
 	        	height: this.rows * this.tileSize
-	        });
+	        })
+            .bind({
+                repaint: $.proxy(this.repaint, this),
+                tick: $.proxy(this.tick, this),
+                tileDrop: $.proxy(this.drop, this)
+            })
+            .trigger('repaint');
 	};
 
     var keys = {
@@ -85,6 +93,21 @@
             if (!isLocationOutOfLevel && isFreePosition(newLocation, this.frozen)) {
                 this.currentTile.shape = newLocation;
                 this.$element.trigger('repaint');
+            }
+        },
+        tick: function() {
+            this.down();
+            this.$element.trigger('repaint');
+        },
+        drop: function() {
+            this.freeze(this.currentTile);
+    
+            this.$element.find('.current').remove();
+    
+            this.generateTile();
+
+            if (!isFreePosition(this.currentTile.shape, this.frozen)) {
+                this.$element.trigger('gameOver');
             }
         },
         rotate: function() {
@@ -171,33 +194,12 @@
             }
         },
         start: function() {
-           this.generateTile();
-
-            var $element = this.$element,
-                that = this;
+            var $element = this.$element;
 
             if (!isFreePosition(this.currentTile.shape, this.frozen)) {
                 $element.trigger('gameOver');
             }
 
-	       $element
-               .bind({
-                   repaint: $.proxy(this.repaint, this),
-                   tick: function() {
-                       that.down();
-                       $element.trigger('repaint');
-                   },
-                   tileDrop: function() {
-                       var currentTile = that.currentTile;
-
-                       that.freeze(that.currentTile);
-
-                       $element.find('.current').remove();
-
-                       that.generateTile();
-                   }
-               })
-               .trigger('repaint');
 
            /// TODO: improve timer
            this.timer = setInterval(function() {
@@ -205,6 +207,12 @@
            }, 600);
 
            $(document).bind('keydown', $.proxy(this.keyDown, this));
+        },
+        pause: function() {
+            if (this.timer) {
+                window.clearInterval(this.timer);
+                this.timer = null;
+            }
         }
 	};
 })(jQuery);
