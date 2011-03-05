@@ -126,7 +126,7 @@
                 this.$element.trigger('tileDrop');
             }
         },
-        generateTile: function() {
+        generateTile: function(type) {
             var that = arguments.callee;
 
             if (!that.cache) {
@@ -137,16 +137,27 @@
 
                 that.cache = [
                     { type: 'O', shape: [ center, center+1, center+direction[0], center+direction[0]+1 ] },
-                    { type: 'J', shape: [ center, center-1, center+direction[0], center+2*direction[0] ] },
-                    { type: 'L', shape: [ center, center+1, center+direction[0], center+2*direction[0] ] },
-                    { type: 'I', shape: [ center, center+direction[0], center+2*direction[0], center+3*direction[0] ] },
+                    { type: 'J', shape: [ center-1, center, center+1, center-1+direction[0] ] },
+                    { type: 'L', shape: [ center-1, center, center+1, center+1+direction[0] ] },
+                    { type: 'I', shape: [ center-1, center, center+1, center+2 ] },
                     { type: 'S', shape: [ center, center-1, center+direction[0], center+direction[0]+1 ] },
                     { type: 'Z', shape: [ center, center+1, center+direction[0], center+direction[0]-1 ] },
-                    { type: 'T', shape: [ center, center+direction[0], center+direction[0]-1, center+direction[0]+1 ] }
+                    { type: 'T', shape: [ center-1, center, center+1, center+direction[0] ] }
                 ];
             }
 
-            this.currentTile = $.extend({}, that.cache[Math.floor(Math.random() * that.cache.length)]);
+            if (typeof type != 'undefined') {
+                for (var i = 0; i < that.cache.length; i++) {
+                    if (that.cache[i].type == type) {
+                        tileIndex = i;
+                        break;
+                    }
+                }
+            } else {
+                tileIndex = Math.floor(Math.random() * that.cache.length);
+            }
+
+            this.currentTile = $.extend({}, that.cache[tileIndex]);
         },
         freeze: function(tile) {
             var frozenTilesHtml = [],
