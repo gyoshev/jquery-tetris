@@ -111,6 +111,25 @@
             }
         },
         rotate: function() {
+            var currentTile = this.currentTile,
+                cols = this.cols,
+                directions = [-cols-1, -cols, -cols+1,
+                                   -1,     0,      +1,
+                              +cols-1, +cols, +cols+1],
+                rotation = [-cols+1, +1, +cols+1,
+                            -cols  ,  0, +cols,
+                            -cols-1, -1, +cols-1],
+                center = currentTile.shape[0];
+
+            if (currentTile.type != "O") {
+                currentTile.shape = $.map(currentTile.shape, function(coord) {
+                    for (var i = 0; i < directions.length; i++) {
+                        if (coord == center + directions[i]) {
+                            return center + rotation[i];
+                        }
+                    }
+                });
+            }
         },
         down: function() {
             var cols = this.cols,
@@ -137,12 +156,12 @@
 
                 that.cache = [
                     { type: 'O', shape: [ center, center+1, center+direction[0], center+direction[0]+1 ] },
-                    { type: 'J', shape: [ center-1, center, center+1, center-1+direction[0] ] },
-                    { type: 'L', shape: [ center-1, center, center+1, center+1+direction[0] ] },
-                    { type: 'I', shape: [ center-1, center, center+1, center+2 ] },
+                    { type: 'J', shape: [ center, center-1, center+1, center-1+direction[0] ] },
+                    { type: 'L', shape: [ center, center-1, center+1, center+1+direction[0] ] },
+                    { type: 'I', shape: [ center, center-1, center+1, center+2 ] },
                     { type: 'S', shape: [ center, center-1, center+direction[0], center+direction[0]+1 ] },
                     { type: 'Z', shape: [ center, center+1, center+direction[0], center+direction[0]-1 ] },
-                    { type: 'T', shape: [ center-1, center, center+1, center+direction[0] ] }
+                    { type: 'T', shape: [ center, center-1, center+1, center+direction[0] ] }
                 ];
             }
 
@@ -154,6 +173,7 @@
                     }
                 }
             } else {
+                //TODO: implement Random Generator (http://tetris.wikia.com/wiki/Random_Generator)
                 tileIndex = Math.floor(Math.random() * that.cache.length);
             }
 

@@ -167,8 +167,8 @@
         module('Rotation', {
             setup: function() {
                 tetris = $('<div />').tetris({
-                    rows: 5,
-                    cols: 5
+                    rows: 10,
+                    cols: 10
                 }).data('tetris');
             },
             teardown: function() {
@@ -177,17 +177,41 @@
         });
 
         test('rotate() does not rotate O-shape', function() {
-           tetris.generateTile('O');
-           var initialState = $.extend({}, tetris.currentTile);
-           tetris.rotate();
+            tetris.generateTile('O');
+            var initialState = $.extend({}, tetris.currentTile);
+            tetris.rotate();
 
-           same(tetris.currentTile, initialState);
+            same(tetris.currentTile, initialState);
         });
 
-        test('rotate() rotates I-shape', function() {
-           tetris.generateTile('I');
-           tetris.rotate();
+        test('rotate() rotates tiles', function() {
+            tetris.currentTile = { shape: [15,14,16,25] };
+            tetris.rotate();
+            same(tetris.currentTile, { shape: [15,5,25,14] });
 
+            tetris.rotate();
+            same(tetris.currentTile, { shape: [15,16,14,5] });
+
+            tetris.rotate();
+            same(tetris.currentTile, { shape: [15,25,5,16] });
+
+            tetris.rotate();
+            same(tetris.currentTile, { shape: [15,14,16,25] });
+        });
+
+        test('rotate() handles edge tiles well', function() {
+            tetris.currentTile = { shape: [15,4,6,5] };
+            tetris.rotate();
+            same(tetris.currentTile, { shape: [15,6,26,16] });
+
+            tetris.rotate();
+            same(tetris.currentTile, { shape: [15,26,24,25] });
+
+            tetris.rotate();
+            same(tetris.currentTile, { shape: [15,24,4,14] });
+
+            tetris.rotate();
+            same(tetris.currentTile, { shape: [15,4,6,5] });
         });
 
         module('Dropping');
@@ -267,7 +291,7 @@
 
         module('Game cycle');
 
-        test('Game ends when new piece clashes with frozen ones', function() {
+        asyncTest('Game ends when new piece clashes with frozen ones', function() {
 			var element = $('<div />')
                     .bind('gameOver', function() {
                         triggered = true;
@@ -286,7 +310,10 @@
 
             tetris.start();
 
-            ok(triggered);
+            setTimeout(function() {
+                start();
+                ok(triggered);
+            }, 100);
         });
 
         test('pause() stops timer', function() {
