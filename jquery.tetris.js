@@ -53,16 +53,6 @@
         down: 40
     };
 
-    function isFreePosition(position, frozenTiles) {
-        for (var i = 0; i < position.length; i++) {
-            if (frozenTiles[position[i]]) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
 	impl.prototype = {
         keyDown: function(e) {
             var code = e.charCode || e.keyCode;
@@ -76,12 +66,25 @@
             else if (code == keys.down)
                 this.down();
         },
+        isValidLocation: function(location) {
+            var maxStageIndex = this.cols * this.rows;
+
+            for (var i = 0; i < location.length; i++) {
+                if (location[i] >= maxStageIndex
+                    || this.frozen[location[i]]) {
+                    return false;
+                }
+            }
+
+            return true;
+        },
         move: function(modifier) {
             var cols = this.cols,
                 shape = this.currentTile.shape,
                 newLocation = $.map(shape, function(x) { return x + modifier; }),
                 isLocationOutOfLevel = false;
 
+            ///TODO: move this to isValidLocation
             for (var i = 0; i < newLocation.length; i++) {
                 if (shape[i] % cols == 0       && modifier < 0
                  || shape[i] % cols == cols -1 && modifier > 0) {
@@ -90,7 +93,7 @@
                 }
             }
                 
-            if (!isLocationOutOfLevel && isFreePosition(newLocation, this.frozen)) {
+            if (!isLocationOutOfLevel && this.isValidLocation(newLocation)) {
                 this.currentTile.shape = newLocation;
                 this.$element.trigger('repaint');
             }
@@ -106,24 +109,28 @@
     
             this.currentTile = this.generateTile();
 
-            if (!isFreePosition(this.currentTile.shape, this.frozen)) {
+            if (!this.isValidLocation(this.currentTile.shape)) {
                 this.$element.trigger('gameOver');
             }
         },
         rotate: function() {
             var currentTile = this.currentTile,
-                directions, rotation, center;
+                newLocation = currentTile.shape.slice();
             
             if (currentTile.shapeStates) {
-                
                 var rotation = currentTile.shapeStates[currentTile.shapeStateIndex];
-                for (var i = 0; i < currentTile.shape.length; i++) {
-                    currentTile.shape[i] += rotation[i];
-                }
 
-                currentTile.shapeStateIndex = (++currentTile.shapeStateIndex) % currentTile.shapeStates.length;
+                newLocation = $.map(newLocation, function(x, index) { return x + rotation[index]; });
+
             } else if (currentTile.shapeRotation) {
-                currentTile.shape = currentTile.shapeRotation(currentTile.shape);
+                newLocation = currentTile.shapeRotation(newLocation);
+            }
+
+            if (this.isValidLocation(newLocation)) {
+                currentTile.shape = newLocation;
+                if (currentTile.shapeStates) {
+                    currentTile.shapeStateIndex = (++currentTile.shapeStateIndex) % currentTile.shapeStates.length;
+                }
             }
 
             this.$element.trigger('repaint');
@@ -132,10 +139,9 @@
             var cols = this.cols,
                 maxStageIndex = cols * this.rows,
                 shape = this.currentTile.shape,
-                newLocation = $.map(shape, function(x) { return x + cols; }),
-                isNewLocationOutOfLevel = $.grep(newLocation, function(x) { return x >= maxStageIndex; }).length > 0;
+                newLocation = $.map(shape, function(x) { return x + cols; });
 
-            if (!isNewLocationOutOfLevel && isFreePosition(newLocation, this.frozen)) {
+            if (this.isValidLocation(newLocation)) {
                 this.currentTile.shape = newLocation;
                 this.$element.trigger('repaint');
             } else {
@@ -289,7 +295,7 @@
         start: function() {
             var $element = this.$element;
 
-            if (!isFreePosition(this.currentTile.shape, this.frozen)) {
+            if (!this.isValidLocation(this.currentTile.shape)) {
                 $element.trigger('gameOver');
             }
 

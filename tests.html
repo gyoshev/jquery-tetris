@@ -235,7 +235,26 @@
 
             tetris.rotate();
             same(tetris.currentTile.shape, [6,16,26,36]);
+        });
+        
+        test('rotate() honors frozen tiles', function() {
+            tetris.currentTile = tetris.generateTile('I');
+            tetris.currentTile.shape = [14,15,16,17];
 
+            tetris.freeze({ type: 'X', shape: [6] });
+            
+            tetris.rotate();
+
+            same(tetris.currentTile.shape, [14,15,16,17]);
+        });
+        
+        test('rotate() honors level constaints', function() {
+            tetris.currentTile = tetris.generateTile('J');
+            tetris.currentTile.shape = [95,84,86,85];
+
+            tetris.rotate();
+
+            same(tetris.currentTile.shape, [95,84,86,85]);
         });
 
         test('rotate() causes repaint', function() {
