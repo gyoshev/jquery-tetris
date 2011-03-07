@@ -31,7 +31,7 @@
             frozen: {}
 		}, options);
 
-        this.generateTile();
+        this.currentTile = this.generateTile();
 
         $element
             .css({
@@ -104,7 +104,7 @@
     
             this.$element.find('.current').remove();
     
-            this.generateTile();
+            this.currentTile = this.generateTile();
 
             if (!isFreePosition(this.currentTile.shape, this.frozen)) {
                 this.$element.trigger('gameOver');
@@ -219,11 +219,27 @@
                     }
                 }
             } else {
-                //TODO: implement Random Generator (http://tetris.wikia.com/wiki/Random_Generator)
-                tileIndex = Math.floor(Math.random() * this.tileCache.length);
+                // using Knuth shuffle (http://tetris.wikia.com/wiki/Random_Generator)
+                if (!this.randomBag || this.randomBag.length == 0) {
+                    var tilesCount = this.tileCache.length;
+                    this.randomBag = [];
+
+                    for (var i = 0; i < tilesCount; i++) {
+                        this.randomBag[i] = i;
+                    }
+
+                    for (var i = tilesCount - 1; i > 0; i--) {
+                        var rand = Math.floor(Math.random() * i),
+                            tmp = this.randomBag[rand];
+                        this.randomBag[rand] = this.randomBag[i];
+                        this.randomBag[i] = tmp;
+                    }
+                }
+
+                tileIndex = this.randomBag.shift();
             }
 
-            this.currentTile = $.extend({}, this.tileCache[tileIndex], { shapeLocation: squareRotation });
+            return $.extend({}, this.tileCache[tileIndex], { shapeLocation: squareRotation });
         },
         freeze: function(tile) {
             var frozenTilesHtml = [],

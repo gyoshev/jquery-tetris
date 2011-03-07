@@ -177,7 +177,7 @@
         });
 
         test('rotate() does not rotate O-shape', function() {
-            tetris.generateTile('O');
+            tetris.currentTile = tetris.generateTile('O');
             var initialState = $.extend({}, tetris.currentTile);
             tetris.rotate();
 
@@ -185,7 +185,7 @@
         });
 
         test('rotate() rotates tiles', function() {
-            tetris.generateTile('T');
+            tetris.currentTile = tetris.generateTile('T');
             tetris.currentTile.shape = [15,14,16,25];
 
             tetris.rotate();
@@ -202,7 +202,7 @@
         });
 
         test('rotate() handles edge tiles well', function() {
-            tetris.generateTile('J');
+            tetris.currentTile = tetris.generateTile('J');
             tetris.currentTile.shape = [15,4,6,5];
             tetris.rotate();
             same(tetris.currentTile.shape, [15,6,26,16]);
@@ -218,7 +218,7 @@
         });
         
         test('rotate() rotates I tetriminos correctly', function() {
-            tetris.generateTile('I');
+            tetris.currentTile = tetris.generateTile('I');
             tetris.currentTile.shape = [14,15,16,17];
 
             tetris.rotate();
@@ -264,7 +264,7 @@
 
             tetris.start();
                 
-            tetris.generateTile = function() { generated = true; };
+            tetris.generateTile = function() { generated = true; return { shape: [10] }; };
 
             element.trigger('tileDrop');
 
@@ -343,7 +343,7 @@
 
             tetris.freeze({ type: 'X', shape: [3] });
             tetris.generateTile = function() {
-                this.currentTile = { type: 'F', shape: [3] };
+                return { type: 'F', shape: [3] };
             };
 
             tetris.start();
@@ -386,7 +386,7 @@
                 tetris = element.data('tetris');
 
             tetris.generateTile = function() {
-                this.currentTile = { type: 'X', shape: [3,4,9,10] };
+                return { type: 'X', shape: [3,4,9,10] };
             };
 
             tetris.currentTile = { type: 'X', shape: [3,8,13,18,23] };
