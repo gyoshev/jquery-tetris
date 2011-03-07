@@ -42,6 +42,7 @@
                 repaint: $.proxy(this.repaint, this),
                 tick: $.proxy(this.tick, this),
                 tileDrop: $.proxy(this.drop, this)
+                /// TODO: handle gameOver event with dignity
             })
             .trigger('repaint');
 	};
@@ -84,7 +85,7 @@
                 newLocation = $.map(shape, function(x) { return x + modifier; }),
                 isLocationOutOfLevel = false;
 
-            ///TODO: move this to isValidLocation
+            /// TODO: move this to isValidLocation()
             for (var i = 0; i < newLocation.length; i++) {
                 if (shape[i] % cols == 0       && modifier < 0
                  || shape[i] % cols == cols -1 && modifier > 0) {
@@ -173,6 +174,7 @@
             }
 
             if (!this.tileCache) {
+                /// TODO: allow extensibility for custom tiles
                 this.tileCache = [
                     {
                         type: 'O',
@@ -298,7 +300,6 @@
             if (!this.isValidLocation(this.currentTile.shape)) {
                 $element.trigger('gameOver');
             }
-
 
            /// TODO: improve timer
            this.timer = setInterval(function() {
