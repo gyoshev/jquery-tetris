@@ -112,24 +112,21 @@
         },
         rotate: function() {
             var currentTile = this.currentTile,
-                cols = this.cols,
-                directions = [-cols-1, -cols, -cols+1,
-                                   -1,     0,      +1,
-                              +cols-1, +cols, +cols+1],
-                rotation = [-cols+1, +1, +cols+1,
-                            -cols  ,  0, +cols,
-                            -cols-1, -1, +cols-1],
-                center = currentTile.shape[0];
+                directions, rotation, center;
+            
+            if (currentTile.shapeStates) {
+                
+                var rotation = currentTile.shapeStates[currentTile.shapeStateIndex];
+                for (var i = 0; i < currentTile.shape.length; i++) {
+                    currentTile.shape[i] += rotation[i];
+                }
 
-            if (currentTile.type != "O") {
-                currentTile.shape = $.map(currentTile.shape, function(coord) {
-                    for (var i = 0; i < directions.length; i++) {
-                        if (coord == center + directions[i]) {
-                            return center + rotation[i];
-                        }
-                    }
-                });
+                currentTile.shapeStateIndex = (++currentTile.shapeStateIndex) % currentTile.shapeStates.length;
+            } else if (currentTile.shapeRotation) {
+                currentTile.shape = currentTile.shapeRotation(currentTile.shape);
             }
+
+            this.$element.trigger('repaint');
         },
         down: function() {
             var cols = this.cols,
@@ -146,38 +143,87 @@
             }
         },
         generateTile: function(type) {
-            var that = arguments.callee;
+            // build shape cache
+            var cols = this.cols,
+                center = Math.floor(cols/2),
+                direction = [-cols, +1, +cols, -1];
 
-            if (!that.cache) {
-                // build shape cache
-                var cols = this.cols,
-                    center = Math.floor(cols/2),
-                    direction = [-cols, +1, +cols, -1];
+            function squareRotation(shape) {
+                var directions = [-cols-1, -cols, -cols+1,
+                                       -1,     0,      +1,
+                                  +cols-1, +cols, +cols+1],
+                    rotation = [-cols+1, +1, +cols+1,
+                                -cols  ,  0, +cols,
+                                -cols-1, -1, +cols-1],
+                    center = shape[0];
 
-                that.cache = [
-                    { type: 'O', shape: [ center, center+1, center+direction[0], center+direction[0]+1 ] },
-                    { type: 'J', shape: [ center, center-1, center+1, center-1+direction[0] ] },
-                    { type: 'L', shape: [ center, center-1, center+1, center+1+direction[0] ] },
-                    { type: 'I', shape: [ center, center-1, center+1, center+2 ] },
-                    { type: 'S', shape: [ center, center-1, center+direction[0], center+direction[0]+1 ] },
-                    { type: 'Z', shape: [ center, center+1, center+direction[0], center+direction[0]-1 ] },
-                    { type: 'T', shape: [ center, center-1, center+1, center+direction[0] ] }
+                return $.map(shape, function(coord) {
+                    for (var i = 0; i < directions.length; i++) {
+                        if (coord == center + directions[i]) {
+                            return center + rotation[i];
+                        }
+                    }
+                });
+            }
+
+            if (!this.tileCache) {
+                this.tileCache = [
+                    {
+                        type: 'O',
+                        shape: [ center, center+1, center+direction[0], center+direction[0]+1 ]
+                    },
+                    {
+                        type: 'J',
+                        shape: [ center, center-1, center+1, center-1+direction[0] ],
+                        shapeRotation: squareRotation
+                    },
+                    {
+                        type: 'L',
+                        shape: [ center, center-1, center+1, center+1+direction[0] ],
+                        shapeRotation: squareRotation
+                    },
+                    {
+                        type: 'I',
+                        shape: [ center-1, center, center+1, center+2 ],
+                        shapeStates: [
+                            [+2-cols, +1, +cols, +2*cols-1],
+                            [+1+2*cols, +cols, -1, -2-cols],
+                            [-2+cols, -1, -cols, -2*cols+1],
+                            [-1-2*cols, -cols, +1, +2+cols]
+                        ],
+                        shapeStateIndex: 0
+                    },
+                    {
+                        type: 'S',
+                        shape: [ center, center-1, center+direction[0], center+direction[0]+1 ],
+                        shapeRotation: squareRotation
+                    },
+                    {
+                        type: 'Z',
+                        shape: [ center, center+1, center+direction[0], center+direction[0]-1 ],
+                        shapeRotation: squareRotation
+                    },
+                    {
+                        type: 'T',
+                        shape: [ center, center-1, center+1, center+direction[0] ],
+                        shapeRotation: squareRotation
+                    }
                 ];
             }
 
             if (typeof type != 'undefined') {
-                for (var i = 0; i < that.cache.length; i++) {
-                    if (that.cache[i].type == type) {
+                for (var i = 0; i < this.tileCache.length; i++) {
+                    if (this.tileCache[i].type == type) {
                         tileIndex = i;
                         break;
                     }
                 }
             } else {
                 //TODO: implement Random Generator (http://tetris.wikia.com/wiki/Random_Generator)
-                tileIndex = Math.floor(Math.random() * that.cache.length);
+                tileIndex = Math.floor(Math.random() * this.tileCache.length);
             }
 
-            this.currentTile = $.extend({}, that.cache[tileIndex]);
+            this.currentTile = $.extend({}, this.tileCache[tileIndex], { shapeLocation: squareRotation });
         },
         freeze: function(tile) {
             var frozenTilesHtml = [],

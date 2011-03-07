@@ -185,33 +185,71 @@
         });
 
         test('rotate() rotates tiles', function() {
-            tetris.currentTile = { shape: [15,14,16,25] };
-            tetris.rotate();
-            same(tetris.currentTile, { shape: [15,5,25,14] });
+            tetris.generateTile('T');
+            tetris.currentTile.shape = [15,14,16,25];
 
             tetris.rotate();
-            same(tetris.currentTile, { shape: [15,16,14,5] });
+            same(tetris.currentTile.shape, [15,5,25,14]);
 
             tetris.rotate();
-            same(tetris.currentTile, { shape: [15,25,5,16] });
+            same(tetris.currentTile.shape, [15,16,14,5]);
 
             tetris.rotate();
-            same(tetris.currentTile, { shape: [15,14,16,25] });
+            same(tetris.currentTile.shape, [15,25,5,16]);
+
+            tetris.rotate();
+            same(tetris.currentTile.shape, [15,14,16,25]);
         });
 
         test('rotate() handles edge tiles well', function() {
+            tetris.generateTile('J');
+            tetris.currentTile.shape = [15,4,6,5];
+            tetris.rotate();
+            same(tetris.currentTile.shape, [15,6,26,16]);
+
+            tetris.rotate();
+            same(tetris.currentTile.shape, [15,26,24,25]);
+
+            tetris.rotate();
+            same(tetris.currentTile.shape, [15,24,4,14]);
+
+            tetris.rotate();
+            same(tetris.currentTile.shape, [15,4,6,5]);
+        });
+        
+        test('rotate() rotates I tetriminos correctly', function() {
+            tetris.generateTile('I');
+            tetris.currentTile.shape = [14,15,16,17];
+
+            tetris.rotate();
+            same(tetris.currentTile.shape, [6,16,26,36]);
+
+            tetris.rotate();
+            same(tetris.currentTile.shape, [27,26,25,24]);
+
+            tetris.rotate();
+            same(tetris.currentTile.shape, [35,25,15,5]);
+
+            tetris.rotate();
+            same(tetris.currentTile.shape, [14,15,16,17]);
+
+            tetris.rotate();
+            same(tetris.currentTile.shape, [6,16,26,36]);
+
+        });
+
+        test('rotate() causes repaint', function() {
+            var triggered = false;
+
+            tetris.$element.bind('repaint', function() {
+                triggered = true;
+            });
+
             tetris.currentTile = { shape: [15,4,6,5] };
-            tetris.rotate();
-            same(tetris.currentTile, { shape: [15,6,26,16] });
 
             tetris.rotate();
-            same(tetris.currentTile, { shape: [15,26,24,25] });
 
-            tetris.rotate();
-            same(tetris.currentTile, { shape: [15,24,4,14] });
-
-            tetris.rotate();
-            same(tetris.currentTile, { shape: [15,4,6,5] });
+            ok(triggered);
         });
 
         module('Dropping');
