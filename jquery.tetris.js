@@ -84,17 +84,38 @@
             }
         },
         rowCompleted: function(e, rowStart) {
-            var cols = this.cols;
+            var cols = this.cols,
+                tileSize = this.tileSize;
 
             this.$element.find('.frozen')
                 .filter(function() {
                     var index = $(this).data('index');
                     return index - (index % cols) == rowStart;
                 })
-                .remove();
+                .remove()
+                .end()
+                .filter(function() {
+                    var index = $(this).data('index');
+                    if (index - (index % cols) < rowStart)
+                    return index - (index % cols) < rowStart;
+                })
+                .css('top', function() {
+                    return parseInt($(this).css('top')) + tileSize;
+                })
+                .each(function() {
+                    var t = $(this);
+                    t.data('index', t.data('index') + cols);
+                });
 
             for (var i = rowStart; i < rowStart + cols; i++) {
-                this.frozen[i] = false;
+                delete this.frozen[i];
+            }
+
+            for (var i = rowStart-1; i >= 0; i--) {
+                if (this.frozen[i]) {
+                    this.frozen[i + cols] = true;
+                    delete this.frozen[i];
+                }
             }
         },
         isValidLocation: function(location) {

@@ -398,6 +398,16 @@
             equals(tetris.$element.find('.frozen').length, 2);
         });
 
+        test('rowCompleted moves above frozen tiles down', function() {
+            var location = [71,80,82,83,84,98];
+
+            tetris.freeze({ type: 'X', shape: location });
+
+            tetris.$element.trigger('rowCompleted', 80);
+
+            same(tetris.frozen, { '81': true, '98': true });
+        });
+
         test('pause() stops timer', function() {
 			var element = $('<div />')
                     .bind('tick', function() {
