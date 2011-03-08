@@ -41,7 +41,8 @@
             .bind({
                 repaint: $.proxy(this.repaint, this),
                 tick: $.proxy(this.tick, this),
-                tileDrop: $.proxy(this.drop, this)
+                tileDrop: $.proxy(this.tileDrop, this),
+                rowCompleted: $.proxy(this.rowCompleted, this)
                 /// TODO: handle gameOver event with dignity
             })
             .trigger('repaint');
@@ -67,6 +68,35 @@
             else if (code == keys.down)
                 this.down();
         },
+        tick: function() {
+            this.down();
+            this.$element.trigger('repaint');
+        },
+        tileDrop: function() {
+            this.freeze(this.currentTile);
+    
+            this.$element.find('.current').remove();
+    
+            this.currentTile = this.generateTile();
+
+            if (!this.isValidLocation(this.currentTile.shape)) {
+                this.$element.trigger('gameOver');
+            }
+        },
+        rowCompleted: function(e, rowStart) {
+            var cols = this.cols;
+
+            this.$element.find('.frozen')
+                .filter(function() {
+                    var index = $(this).data('index');
+                    return index - (index % cols) == rowStart;
+                })
+                .remove();
+
+            for (var i = rowStart; i < rowStart + cols; i++) {
+                this.frozen[i] = false;
+            }
+        },
         isValidLocation: function(location) {
             var cols = this.cols,
                 maxStageIndex = cols * this.rows;
@@ -90,26 +120,21 @@
         move: function(modifier) {
             var cols = this.cols,
                 shape = this.currentTile.shape,
-                newLocation = $.map(shape, function(x) { return x + modifier; });
+                newLocation = $.map(shape, function(x) {
+                    return x + modifier;
+                }),
+                hitsEdge = false;
+
+            for (var i = 0; i < shape.length; i++) {
+                if ((modifier < 0 && shape[i] % cols == 0)
+                 || (modifier > 0 && shape[i] % cols == cols - 1)) {
+                    hitsEdge = true;
+                }
+            }
                 
-            if (this.isValidLocation(newLocation)) {
+            if (!hitsEdge && this.isValidLocation(newLocation)) {
                 this.currentTile.shape = newLocation;
                 this.$element.trigger('repaint');
-            }
-        },
-        tick: function() {
-            this.down();
-            this.$element.trigger('repaint');
-        },
-        drop: function() {
-            this.freeze(this.currentTile);
-    
-            this.$element.find('.current').remove();
-    
-            this.currentTile = this.generateTile();
-
-            if (!this.isValidLocation(this.currentTile.shape)) {
-                this.$element.trigger('gameOver');
             }
         },
         rotate: function() {
@@ -173,6 +198,7 @@
 
             if (!this.tileCache) {
                 /// TODO: allow extensibility for custom tiles
+                /// TODO: move this somewhere else
                 this.tileCache = [
                     {
                         type: 'O',
@@ -251,9 +277,14 @@
             var frozenTilesHtml = [],
                 shape = tile.shape,
                 tileSize = this.tileSize,
-                cols = this.cols;
+                cols = this.cols,
+                rowsToCheck = [];
 
             for (var i = 0; i < shape.length; i++) {
+                if ($.inArray(shape[i] - (shape[i] % cols), rowsToCheck) === -1) {
+                    rowsToCheck.push(shape[i] - (shape[i] % cols));
+                }
+
                 this.frozen[shape[i]] = true;
                 frozenTilesHtml.push('<div class="tile frozen type-' + tile.type + '" />');
             }
@@ -263,9 +294,24 @@
                     $(this).css({
                         left: (shape[i] % cols) * tileSize,
                         top: Math.floor(shape[i] / cols) * tileSize
-                    });
+                    })
+                    .data('index', shape[i]);
                 })
                 .appendTo(this.element);
+
+            while (rowsToCheck.length) {
+                var rowStart = rowsToCheck.shift(),
+                    broken = false;
+
+                for (var i = rowStart; i < rowStart + cols; i++) {
+                    if (!this.frozen[i])
+                        broken = true;
+                }
+
+                if (!broken) {
+                    this.$element.trigger('rowCompleted', rowStart);
+                }
+            }
         },
         repaint: function() {
             var cols = this.cols,

@@ -30,7 +30,7 @@
 			equals(element.height(), 63);
 		});
 
-        module('Movement', {
+        module('', {
             setup: function() {
                 tetris = $('<div />').tetris({
                     rows: 10,
@@ -155,6 +155,17 @@
             same(tetris.currentTile, { shape: [0,10,20,30] });
         });
 
+        test('move() honors level constraints for I-tetriminos', function() {
+            tetris.currentTile = { shape: [10,20,30,40] };
+            tetris.move(-1);
+            same(tetris.currentTile, { shape: [10,20,30,40] });
+
+            
+            tetris.currentTile = { shape: [19,29,39,49] };
+            tetris.move(1);
+            same(tetris.currentTile, { shape: [19,29,39,49] });
+        })
+
         test('move() honors frozen tiles', function() {
 			var triggeredTileDrop = false;
                 
@@ -166,18 +177,6 @@
 
             tetris.move(1);
             same(tetris.currentTile, { shape: [85,86,87,88] });
-        });
-
-        module('Rotation', {
-            setup: function() {
-                tetris = $('<div />').tetris({
-                    rows: 10,
-                    cols: 10
-                }).data('tetris');
-            },
-            teardown: function() {
-                tetris.$element.remove();
-            }
         });
 
         test('rotate() does not rotate O-shape', function() {
@@ -275,8 +274,6 @@
             ok(triggered);
         });
 
-        module('Dropping');
-
         test('tileDrop generates new tile', function() {
 			var element = $('<div />').tetris({
 				    rows: 10,
@@ -311,70 +308,94 @@
             equals(element.find('.frozen.tile').length, 4);
         });
 
-        module('Rendering');
-
         test('repaint() renders parts for current tile', function() {
-			var element = $('<div />').tetris({
-				    rows: 10,
-				    cols: 10
-			    }),
-                tetris = element.data('tetris');
-
             tetris.start();
             tetris.repaint();
 
-            equals(element.find('.current').length, tetris.currentTile.shape.length);
+            equals(tetris.$element.find('.current').length, tetris.currentTile.shape.length);
         });
 
         test('freeze() marks tiles as frozen', function() {
-			var element = $('<div />').tetris({
-				    rows: 10,
-				    cols: 10
-			    }),
-                tetris = element.data('tetris');
-
             tetris.freeze({ type: 'X', shape: [95] });
 
             equals(tetris.frozen[95], true);
         });
 
         test('freeze() renders frozen tiles', function() {
-			var element = $('<div />').tetris({
-				    rows: 10,
-				    cols: 10
-			    }),
-                tetris = element.data('tetris');
-
             tetris.freeze({ type: 'X', shape: [95] });
 
-            equals(element.find('.frozen.tile').length, 1);
+            equals(tetris.$element.find('.frozen.tile').length, 1);
         });
 
-        module('Game cycle');
+        test('freeze() throws rowCompleted when a row gets completed', function() {
+            var triggeredArg;
 
-        asyncTest('Game ends when new piece clashes with frozen ones', function() {
-			var element = $('<div />')
-                    .bind('gameOver', function() {
-                        triggered = true;
-                    })
-                    .tetris({
-				        rows: 5,
-    				    cols: 5
-	    		    }),
-                tetris = element.data('tetris'),
-                triggered = false;
+            tetris.freeze({ type: 'X', shape: [90,  92,93,94,95,96,97,98  ] });
 
-            tetris.freeze({ type: 'X', shape: [3] });
-            tetris.generateTile = function() {
-                return { type: 'F', shape: [3] };
-            };
+            tetris.$element.bind('rowCompleted', function(e, rowStart) {
+                triggeredArg = rowStart;
+            });
 
-            tetris.start();
+            tetris.freeze({ type: 'Y', shape: [91,99] });
 
-            setTimeout(function() {
-                start();
-                ok(triggered);
-            }, 100);
+            ok(triggeredArg);
+            equals(triggeredArg, 90);
+        });
+
+        test('freeze() throws rowCompleted for multiple rows', function() {
+            var triggeredCount = 0;
+
+            tetris.freeze({ type: 'X', shape: [80,   82,83,84,85,86,87,88,89,
+                                               90,   92,93,94,95,96,97,98,99] });
+
+            tetris.$element.bind('rowCompleted', function(e, rowStart) {
+                triggeredCount++;
+            });
+
+            tetris.freeze({ type: 'Y', shape: [81,91] });
+
+            equals(triggeredCount, 2);
+        });
+
+        test('freeze() freezes tile before triggering rowCompleted', 1, function() {
+
+            tetris.freeze({ type: 'X', shape: [90,   92,93,94,95,96,97,98,99] });
+
+            tetris.$element.unbind('rowCompleted').bind('rowCompleted', function(e, rowStart) {
+                equals(tetris.$element.find('.frozen').length, 10);
+            });
+
+            tetris.freeze({ type: 'Y', shape: [91] });
+        });
+
+        test('rowCompleted removes completed row', function() {
+            var location = [90,92,93,94,95,96,97,98];
+
+            tetris.freeze({ type: 'X', shape: location });
+
+            tetris.$element.trigger('rowCompleted', 90);
+
+            ok(tetris.isValidLocation(location));
+        });
+
+        test('rowCompleted deletes frozen tiles', function() {
+            var location = [90,92,93,94,95,96,97,98];
+
+            tetris.freeze({ type: 'X', shape: location });
+
+            tetris.$element.trigger('rowCompleted', 90);
+
+            equals(tetris.$element.find('.frozen').length, 0);
+        });
+
+        test('rowCompleted deletes frozen tiles', function() {
+            var location = [80, 81, 90,92,93,94,95,96,97,98];
+
+            tetris.freeze({ type: 'X', shape: location });
+
+            tetris.$element.trigger('rowCompleted', 90);
+
+            equals(tetris.$element.find('.frozen').length, 2);
         });
 
         test('pause() stops timer', function() {
