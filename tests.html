@@ -142,9 +142,13 @@
             tetris.move(-1);
             same(tetris.currentTile, { shape: [0,1,2,3] });
                 
-            tetris.currentTile = { shape: [5,-5,-6,-7] };
+            tetris.currentTile = { shape: [10,11,12,13] };
             tetris.move(-1);
-            same(tetris.currentTile, { shape: [4,-6,-7,-8] });
+            same(tetris.currentTile, { shape: [10,11,12,13] });
+                
+            tetris.currentTile = { shape: [15,5,6,7] };
+            tetris.move(-1);
+            same(tetris.currentTile, { shape: [14,4,5,6] });
                 
             tetris.currentTile = { shape: [0,10,20,30] };
             tetris.move(-1);

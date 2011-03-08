@@ -16,7 +16,7 @@
 	};
 
 	tetris.defaults = {
-		rows: 20,
+		rows: 22,
 		cols: 10,
 		tileSize: 16
 	};
@@ -68,12 +68,20 @@
                 this.down();
         },
         isValidLocation: function(location) {
-            var maxStageIndex = this.cols * this.rows;
+            var cols = this.cols,
+                maxStageIndex = cols * this.rows;
 
             for (var i = 0; i < location.length; i++) {
-                if (location[i] >= maxStageIndex
+                if (location[i] < 0
+                    || location[i] >= maxStageIndex
                     || this.frozen[location[i]]) {
                     return false;
+                }
+
+                for (var j = 0; j < i; j++) {
+                    if (((location[i] % cols == 0) && (location[j] % cols == cols - 1))
+                     || ((location[i] % cols == cols - 1) && (location[j] % cols == 0)))
+                        return false;
                 }
             }
 
@@ -82,19 +90,9 @@
         move: function(modifier) {
             var cols = this.cols,
                 shape = this.currentTile.shape,
-                newLocation = $.map(shape, function(x) { return x + modifier; }),
-                isLocationOutOfLevel = false;
-
-            /// TODO: move this to isValidLocation()
-            for (var i = 0; i < newLocation.length; i++) {
-                if (shape[i] % cols == 0       && modifier < 0
-                 || shape[i] % cols == cols -1 && modifier > 0) {
-                    isLocationOutOfLevel = true;
-                    break;
-                }
-            }
+                newLocation = $.map(shape, function(x) { return x + modifier; });
                 
-            if (!isLocationOutOfLevel && this.isValidLocation(newLocation)) {
+            if (this.isValidLocation(newLocation)) {
                 this.currentTile.shape = newLocation;
                 this.$element.trigger('repaint');
             }
@@ -152,7 +150,7 @@
         generateTile: function(type) {
             // build shape cache
             var cols = this.cols,
-                center = Math.floor(cols/2),
+                center = Math.floor(cols/2) + cols,
                 direction = [-cols, +1, +cols, -1];
 
             function squareRotation(shape) {
@@ -227,7 +225,7 @@
                     }
                 }
             } else {
-                // using Knuth shuffle (http://tetris.wikia.com/wiki/Random_Generator)
+                // Random Generator using Knuth shuffle (http://tetris.wikia.com/wiki/Random_Generator)
                 if (!this.randomBag || this.randomBag.length == 0) {
                     var tilesCount = this.tileCache.length;
                     this.randomBag = [];
