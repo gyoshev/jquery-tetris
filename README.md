@@ -25,6 +25,10 @@ I strived to follow the [Tetris Guideline](http://tetris.wikia.com/wiki/Tetris_G
 
 All tiles are rendered through the DOM, so you can style them with juicy CSS3. Yum!
 
+## Building
+
+To build a minified version, you need [nodejs](http://nodejs.org/). Just run `node build/jquery-tetris.js` and the jquery.tetris.min.js will appear.
+
 ## ToDos
 
 - Show next tile
