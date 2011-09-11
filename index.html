@@ -4,14 +4,16 @@
         <title>jQuery Tetris plug-in</title>
 
         <style>
-            #tetris
-            {
+            #tetris {
                 position: relative;
-                border: 1px solid #333;
+                border: 1px solid #ccc;
+                border-radius: .4em;
+                box-shadow: 0 0 1em #ccc;
+                margin: 0 auto;
             }
 
-            .tile
-            {
+            .tile {
+                border-radius: .2em;
                 position: absolute;
                 width: 15px;
                 height: 15px;
@@ -27,32 +29,44 @@
             .type-J { background-color: blue; }
             .type-L { background-color: orange; }
 
-            .frozen
-            {
+            .frozen {
                 border-style: dashed;
+            }
+
+            html, body {
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font: 75%/1.5 Verdana,sans-serif;
+            }
+
+            section {
+                width: 30em;
+                margin: 0 auto;
+            }
+
+            h1 {
+                border-bottom: .2em solid #ccc;
+                line-height: .8em;
+                padding-left: .4em;
+                margin-bottom: 2em;
             }
         </style>
     </head>
     <body>
-        <div id="tetris"></div>
+        <section>
+            <h1>jQuery tetris plug-in</h1>
 
-        <button id="toggleState">Play / pause</button>
+            <div id="tetris"></div>
 
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.js"></script>
-        <script src="jquery.tetris.js"></script>
-        <script>
-            var tetris = $('#tetris').tetris().data('tetris');
-
-            $('#toggleState').click(function() {
-                if (tetris.timer != null) {
-                    tetris.pause();
-                } else {
-                    tetris.start();
-                    tetris.$element.bind('gameOver', function() {
-                        //alert('game over, loser!');
-                    });
-                }
-            });
-        </script>
+            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.js"></script>
+            <script src="jquery.tetris.js"></script>
+            <script>
+                $('#tetris').tetris({
+                }).data('tetris').start();
+            </script>
+        </section>
     </body>
 </html>
