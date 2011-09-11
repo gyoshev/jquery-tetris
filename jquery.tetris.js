@@ -2,18 +2,56 @@
 // by Alexander Gyoshev (http://blog.gyoshev.net/)
 // licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License. (http://creativecommons.org/licenses/by-sa/3.0/)
 (function($) {
-    // jQuery plug-in
-    var tetris = $.fn.tetris = function(options) {
-        options = $.extend($.fn.tetris.defaults, options);
+    var extend = $.extend,
+        proxy = $.proxy,
+        keys = {
+            left: 37,
+            up: 38,
+            right: 39,
+            down: 40
+        },
 
-        return this.each(function() {
-            var $this = $(this), instance;
-            if (!$this.data("tetris")) {
-                instance = new $.fn.tetris.implementation(this, options);
-                $this.data("tetris", instance);
-            }
-        });
-    };
+        // jQuery plug-in
+        tetris = $.fn.tetris = function(options) {
+            options = extend($.fn.tetris.defaults, options);
+
+            return this.each(function() {
+                var $this = $(this), instance;
+                if (!$this.data("tetris")) {
+                    instance = new impl(this, options);
+                    $this.data("tetris", instance);
+                }
+            });
+        },
+
+        // Tetris implementation
+        impl = tetris.implementation = function(element, options) {
+            var $element = $(element),
+                that = this;
+
+            extend(that, {
+                element: element,
+                $element: $element,
+                frozen: {}
+            }, options);
+
+            that.currentTile = that.generateTile();
+
+            $element
+                .css({
+                    width: that.cols * that.tileSize,
+                    height: that.rows * that.tileSize
+                })
+                .bind({
+                    repaint: proxy(that.repaint, that),
+                    tick: proxy(that.tick, that),
+                    tileDrop: proxy(that.tileDrop, that),
+                    rowCompleted: proxy(that.rowCompleted, that)
+                    /// TODO: handle gameOver event with dignity
+                })
+                .trigger('repaint');
+        };
+
 
     tetris.defaults = {
         rows: 22,
@@ -21,73 +59,44 @@
         tileSize: 16
     };
 
-    // Tetris implementation
-    var impl = tetris.implementation = function(element, options) {
-        var $element = $(element);
-
-        $.extend(this, {
-            element: element,
-            $element: $element,
-            frozen: {}
-        }, options);
-
-        this.currentTile = this.generateTile();
-
-        $element
-            .css({
-                width: this.cols * this.tileSize,
-                height: this.rows * this.tileSize
-            })
-            .bind({
-                repaint: $.proxy(this.repaint, this),
-                tick: $.proxy(this.tick, this),
-                tileDrop: $.proxy(this.tileDrop, this),
-                rowCompleted: $.proxy(this.rowCompleted, this)
-                /// TODO: handle gameOver event with dignity
-            })
-            .trigger('repaint');
-    };
-
-    var keys = {
-        left: 37,
-        up: 38,
-        right: 39,
-        down: 40
-    };
-
     impl.prototype = {
         keyDown: function(e) {
-            var code = e.charCode || e.keyCode;
+            var code = e.charCode || e.keyCode,
+                that = this;
 
             if (code == keys.left)
-                this.move(-1);
+                that.move(-1);
             else if (code == keys.up)
-                this.rotate();
+                that.rotate();
             else if (code == keys.right)
-                this.move(1);
+                that.move(1);
             else if (code == keys.down)
-                this.down();
+                that.down();
         },
         tick: function() {
             this.down();
             this.$element.trigger('repaint');
         },
         tileDrop: function() {
-            this.freeze(this.currentTile);
+            var that = this;
 
-            this.$element.find('.current').remove();
+            that.freeze(that.currentTile);
 
-            this.currentTile = this.generateTile();
+            that.$element.find('.current').remove();
 
-            if (!this.isValidLocation(this.currentTile.shape)) {
-                this.$element.trigger('gameOver');
+            that.currentTile = that.generateTile();
+
+            if (!that.isValidLocation(that.currentTile.shape)) {
+                that.$element.trigger('gameOver');
             }
         },
         rowCompleted: function(e, rowStart) {
-            var cols = this.cols,
-                tileSize = this.tileSize;
+            var that = this,
+                i,
+                cols = that.cols,
+                tileSize = that.tileSize;
 
-            this.$element.find('.frozen')
+            that.$element.find('.frozen')
                 .filter(function() {
                     var index = $(this).data('index');
                     return index - (index % cols) == rowStart;
@@ -107,29 +116,29 @@
                     t.data('index', t.data('index') + cols);
                 });
 
-            for (var i = rowStart; i < rowStart + cols; i++) {
-                delete this.frozen[i];
+            for (i = rowStart; i < rowStart + cols; i++) {
+                delete that.frozen[i];
             }
 
-            for (var i = rowStart-1; i >= 0; i--) {
-                if (this.frozen[i]) {
-                    this.frozen[i + cols] = true;
-                    delete this.frozen[i];
+            for (i = rowStart-1; i >= 0; i--) {
+                if (that.frozen[i]) {
+                    that.frozen[i + cols] = true;
+                    delete that.frozen[i];
                 }
             }
         },
         isValidLocation: function(location) {
-            var cols = this.cols,
+            var i, j,
+                cols = this.cols,
                 maxStageIndex = cols * this.rows;
 
-            for (var i = 0; i < location.length; i++) {
-                if (location[i] < 0
-                    || location[i] >= maxStageIndex
-                    || this.frozen[location[i]]) {
+            for (i = 0; i < location.length; i++) {
+                if (location[i] < 0 || location[i] >= maxStageIndex
+                 || this.frozen[location[i]]) {
                     return false;
                 }
 
-                for (var j = 0; j < i; j++) {
+                for (j = 0; j < i; j++) {
                     if (((location[i] % cols == 0) && (location[j] % cols == cols - 1))
                      || ((location[i] % cols == cols - 1) && (location[j] % cols == 0)))
                         return false;
@@ -139,31 +148,35 @@
             return true;
         },
         move: function(modifier) {
-            var cols = this.cols,
-                shape = this.currentTile.shape,
+            var that = this,
+                i,
+                cols = that.cols,
+                shape = that.currentTile.shape,
                 newLocation = $.map(shape, function(x) {
                     return x + modifier;
                 }),
                 hitsEdge = false;
 
-            for (var i = 0; i < shape.length; i++) {
+            for (i = 0; i < shape.length; i++) {
                 if ((modifier < 0 && shape[i] % cols == 0)
                  || (modifier > 0 && shape[i] % cols == cols - 1)) {
                     hitsEdge = true;
                 }
             }
 
-            if (!hitsEdge && this.isValidLocation(newLocation)) {
-                this.currentTile.shape = newLocation;
-                this.$element.trigger('repaint');
+            if (!hitsEdge && that.isValidLocation(newLocation)) {
+                that.currentTile.shape = newLocation;
+                that.$element.trigger('repaint');
             }
         },
         rotate: function() {
-            var currentTile = this.currentTile,
-                newLocation = currentTile.shape.slice();
+            var that = this,
+                currentTile = that.currentTile,
+                newLocation = currentTile.shape.slice(),
+                rotation;
 
             if (currentTile.shapeStates) {
-                var rotation = currentTile.shapeStates[currentTile.shapeStateIndex];
+                rotation = currentTile.shapeStates[currentTile.shapeStateIndex];
 
                 newLocation = $.map(newLocation, function(x, index) { return x + rotation[index]; });
 
@@ -171,26 +184,27 @@
                 newLocation = currentTile.shapeRotation(newLocation);
             }
 
-            if (this.isValidLocation(newLocation)) {
+            if (that.isValidLocation(newLocation)) {
                 currentTile.shape = newLocation;
                 if (currentTile.shapeStates) {
                     currentTile.shapeStateIndex = (++currentTile.shapeStateIndex) % currentTile.shapeStates.length;
                 }
             }
 
-            this.$element.trigger('repaint');
+            that.$element.trigger('repaint');
         },
         down: function() {
-            var cols = this.cols,
-                maxStageIndex = cols * this.rows,
-                shape = this.currentTile.shape,
+            var that = this,
+                cols = that.cols,
+                maxStageIndex = cols * that.rows,
+                shape = that.currentTile.shape,
                 newLocation = $.map(shape, function(x) { return x + cols; });
 
-            if (this.isValidLocation(newLocation)) {
-                this.currentTile.shape = newLocation;
-                this.$element.trigger('repaint');
+            if (that.isValidLocation(newLocation)) {
+                that.currentTile.shape = newLocation;
+                that.$element.trigger('repaint');
             } else {
-                this.$element.trigger('tileDrop');
+                that.$element.trigger('tileDrop');
             }
         },
         generateTile: function(type) {
@@ -292,7 +306,7 @@
                 tileIndex = this.randomBag.shift();
             }
 
-            return $.extend({}, this.tileCache[tileIndex], { shapeLocation: squareRotation });
+            return extend({}, this.tileCache[tileIndex], { shapeLocation: squareRotation });
         },
         freeze: function(tile) {
             var frozenTilesHtml = [],
@@ -371,7 +385,7 @@
                $element.trigger('tick');
            }, 600);
 
-           $(document).bind('keydown', $.proxy(this.keyDown, this));
+           $(document).bind('keydown', proxy(this.keyDown, this));
         },
         pause: function() {
             if (this.timer) {
