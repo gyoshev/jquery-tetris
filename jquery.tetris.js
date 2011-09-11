@@ -3,41 +3,41 @@
 // licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License. (http://creativecommons.org/licenses/by-sa/3.0/)
 (function($) {
     // jQuery plug-in
-	var tetris = $.fn.tetris = function(options) {
-		options = $.extend($.fn.tetris.defaults, options);
+    var tetris = $.fn.tetris = function(options) {
+        options = $.extend($.fn.tetris.defaults, options);
 
-		return this.each(function() {
-			var $this = $(this), instance;
-			if (!$this.data("tetris")) {
-				instance = new $.fn.tetris.implementation(this, options);
-				$this.data("tetris", instance);
-			}
-		});
-	};
+        return this.each(function() {
+            var $this = $(this), instance;
+            if (!$this.data("tetris")) {
+                instance = new $.fn.tetris.implementation(this, options);
+                $this.data("tetris", instance);
+            }
+        });
+    };
 
-	tetris.defaults = {
-		rows: 22,
-		cols: 10,
-		tileSize: 16
-	};
+    tetris.defaults = {
+        rows: 22,
+        cols: 10,
+        tileSize: 16
+    };
 
     // Tetris implementation
-	var impl = tetris.implementation = function(element, options) {
-		var $element = $(element);
+    var impl = tetris.implementation = function(element, options) {
+        var $element = $(element);
 
-		$.extend(this, {
-			element: element,
-			$element: $element,
+        $.extend(this, {
+            element: element,
+            $element: $element,
             frozen: {}
-		}, options);
+        }, options);
 
         this.currentTile = this.generateTile();
 
         $element
             .css({
-	            width: this.cols * this.tileSize,
-	        	height: this.rows * this.tileSize
-	        })
+                width: this.cols * this.tileSize,
+                height: this.rows * this.tileSize
+            })
             .bind({
                 repaint: $.proxy(this.repaint, this),
                 tick: $.proxy(this.tick, this),
@@ -46,7 +46,7 @@
                 /// TODO: handle gameOver event with dignity
             })
             .trigger('repaint');
-	};
+    };
 
     var keys = {
         left: 37,
@@ -55,7 +55,7 @@
         down: 40
     };
 
-	impl.prototype = {
+    impl.prototype = {
         keyDown: function(e) {
             var code = e.charCode || e.keyCode;
 
@@ -74,9 +74,9 @@
         },
         tileDrop: function() {
             this.freeze(this.currentTile);
-    
+
             this.$element.find('.current').remove();
-    
+
             this.currentTile = this.generateTile();
 
             if (!this.isValidLocation(this.currentTile.shape)) {
@@ -152,7 +152,7 @@
                     hitsEdge = true;
                 }
             }
-                
+
             if (!hitsEdge && this.isValidLocation(newLocation)) {
                 this.currentTile.shape = newLocation;
                 this.$element.trigger('repaint');
@@ -161,7 +161,7 @@
         rotate: function() {
             var currentTile = this.currentTile,
                 newLocation = currentTile.shape.slice();
-            
+
             if (currentTile.shapeStates) {
                 var rotation = currentTile.shapeStates[currentTile.shapeStateIndex];
 
@@ -379,5 +379,5 @@
                 this.timer = null;
             }
         }
-	};
+    };
 })(jQuery);

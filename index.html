@@ -1,48 +1,48 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-	<head>
-		<title>jQuery Tetris</title>
+    <head>
+        <title>jQuery Tetris plug-in</title>
 
-		<style>
-			#tetris
-			{
-				position: relative;
-				border: 1px solid #333;	
-			}
+        <style>
+            #tetris
+            {
+                position: relative;
+                border: 1px solid #333;
+            }
 
-			.tile
-			{
-				position: absolute;
-				width: 15px;
-				height: 15px;
-				border: 1px solid #333;
-				background: red;
-			}
-			
-			.type-I { background-color: cyan; }
-			.type-O { background-color: yellow; }
-			.type-T { background-color: purple; }
-			.type-S { background-color: green; }
-			.type-Z { background-color: red; }
-			.type-J { background-color: blue; }
-			.type-L { background-color: orange; }
-			
-			.frozen 
-			{
-			    border-style: dashed;
-			}
-		</style>
-	</head>
-	<body>
-		<div id="tetris"></div>
+            .tile
+            {
+                position: absolute;
+                width: 15px;
+                height: 15px;
+                border: 1px solid #333;
+                background: red;
+            }
+
+            .type-I { background-color: cyan; }
+            .type-O { background-color: yellow; }
+            .type-T { background-color: purple; }
+            .type-S { background-color: green; }
+            .type-Z { background-color: red; }
+            .type-J { background-color: blue; }
+            .type-L { background-color: orange; }
+
+            .frozen
+            {
+                border-style: dashed;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="tetris"></div>
 
         <button id="toggleState">Play / pause</button>
 
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.js"></script>
-		<script src="jquery.tetris.js"></script>
-		<script>
-            
-			var tetris = $('#tetris').tetris().data('tetris');
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.js"></script>
+        <script src="jquery.tetris.js"></script>
+        <script>
+            var tetris = $('#tetris').tetris().data('tetris');
+
             $('#toggleState').click(function() {
                 if (tetris.timer != null) {
                     tetris.pause();
@@ -53,6 +53,6 @@
                     });
                 }
             });
-		</script>
-	</body>
+        </script>
+    </body>
 </html>
